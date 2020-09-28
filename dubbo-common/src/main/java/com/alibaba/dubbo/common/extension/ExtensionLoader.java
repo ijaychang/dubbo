@@ -728,6 +728,7 @@ public class ExtensionLoader<T> {
         if (cachedAdaptiveClass != null) {
             return cachedAdaptiveClass;
         }
+        // when cachedAdaptiveClass is null (mean there is no implement class with @Adaptive annotation)
         return cachedAdaptiveClass = createAdaptiveExtensionClass();
     }
 
@@ -741,6 +742,8 @@ public class ExtensionLoader<T> {
     private String createAdaptiveExtensionClassCode() {
         StringBuilder codeBuidler = new StringBuilder();
         Method[] methods = type.getMethods();
+        // check to see if at least one method with @Adaptive exists
+        // if not exists will throw a IllegalStateException
         boolean hasAdaptiveAnnotation = false;
         for (Method m : methods) {
             if (m.isAnnotationPresent(Adaptive.class)) {
@@ -754,6 +757,7 @@ public class ExtensionLoader<T> {
 
         codeBuidler.append("package " + type.getPackage().getName() + ";");
         codeBuidler.append("\nimport " + ExtensionLoader.class.getName() + ";");
+        // define the class name such as Xyz$Adaptive base on type's simpleName
         codeBuidler.append("\npublic class " + type.getSimpleName() + "$Adaptive" + " implements " + type.getCanonicalName() + " {");
 
         for (Method method : methods) {
@@ -764,10 +768,13 @@ public class ExtensionLoader<T> {
             Adaptive adaptiveAnnotation = method.getAnnotation(Adaptive.class);
             StringBuilder code = new StringBuilder(512);
             if (adaptiveAnnotation == null) {
+                // if adaptiveAnnotation is null then the method body as fllow
+                // throw new UnsupportedOperationException("method public abstract void com.alibaba.dubbo.rpc.Protocol.destroy() of interface com.alibaba.dubbo.rpc.Protocol is not adaptive method!");
                 code.append("throw new UnsupportedOperationException(\"method ")
                         .append(method.toString()).append(" of interface ")
                         .append(type.getName()).append(" is not adaptive method!\");");
             } else {
+                // locate the URL type parameter's index
                 int urlTypeIndex = -1;
                 for (int i = 0; i < pts.length; ++i) {
                     if (pts[i].equals(URL.class)) {
@@ -828,6 +835,7 @@ public class ExtensionLoader<T> {
                 if (value.length == 0) {
                     char[] charArray = type.getSimpleName().toCharArray();
                     StringBuilder sb = new StringBuilder(128);
+                    // result of type.getSimpleName() change to lower case(when come capital letter add '.'; for example: FooBar->foo.bar )
                     for (int i = 0; i < charArray.length; i++) {
                         if (Character.isUpperCase(charArray[i])) {
                             if (i != 0) {

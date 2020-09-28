@@ -94,10 +94,10 @@ public class ExtensionLoader<T> {
     private Map<String, IllegalStateException> exceptions = new ConcurrentHashMap<String, IllegalStateException>();
 
     private ExtensionLoader(Class<?> type) {
-        // 一个接口对应一个ExtensionLoader对象
+        // A Type matches an ExtensionLoader object
         this.type = type;
-        // ExtensionLoader.getExtensionLoader(ExtensionFactory.class).getAdaptiveExtension()得到AdaptiveExtensionFactory对象
-        // 除了type为ExtensionFactory的ExtensionLoader对象外，其余ExtensionLoader对象的objectFactory都是AdaptiveExtensionFactory对象
+        // To get AdaptiveExtensionFactory object by ExtensionLoader.getExtensionLoader(ExtensionFactory.class).getAdaptiveExtension()
+        // In general the objectFactory of the ExtensionLoader object is an AdaptiveExtensionFactory object, except for the ExtensionLoader object whose type is an ExtensionFactory(the field value of objectFactory is null)
         objectFactory = (type == ExtensionFactory.class ? null :
                 ExtensionLoader.getExtensionLoader(ExtensionFactory.class)
                 .getAdaptiveExtension());

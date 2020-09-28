@@ -77,15 +77,18 @@ public class ExtensionLoader<T> {
     private final Class<?> type;
 
     private final ExtensionFactory objectFactory;
-
+    // cached implement class and query name map
     private final ConcurrentMap<Class<?>, String> cachedNames = new ConcurrentHashMap<Class<?>, String>();
-
+    // cached query name and implement class map
     private final Holder<Map<String, Class<?>>> cachedClasses = new Holder<Map<String, Class<?>>>();
 
     private final Map<String, Activate> cachedActivates = new ConcurrentHashMap<String, Activate>();
     private final ConcurrentMap<String, Holder<Object>> cachedInstances = new ConcurrentHashMap<String, Holder<Object>>();
+    // cached the instance of implement class that have @Adpative annotation
     private final Holder<Object> cachedAdaptiveInstance = new Holder<Object>();
+    // cached the implement class that have @Adpative annotation
     private volatile Class<?> cachedAdaptiveClass = null;
+    // cached the name to find the default extension
     private String cachedDefaultName;
     private volatile Throwable createAdaptiveInstanceError;
 
@@ -622,6 +625,7 @@ public class ExtensionLoader<T> {
                                                         type + ", class line: " + clazz.getName() + "), class "
                                                         + clazz.getName() + "is not subtype of interface.");
                                             }
+                                            // when the @Adaptive exists on clazz,then use cachedAdaptiveClass to cached the clazz
                                             if (clazz.isAnnotationPresent(Adaptive.class)) {
                                                 if (cachedAdaptiveClass == null) {
                                                     cachedAdaptiveClass = clazz;
@@ -642,7 +646,7 @@ public class ExtensionLoader<T> {
                                                 } catch (NoSuchMethodException e) {
                                                     clazz.getConstructor();
                                                     // dubbo spi config file support not specify the name of the implement class
-                                                    // alternative solution is use @Extension for example @Extension("impl1") to specify the implement class name
+                                                    // alternative solution is use @Extension for example @Extension("impl1") to specify the implement class's query name
                                                     if (name == null || name.length() == 0) {
                                                         name = findAnnotationName(clazz);
                                                         if (name == null || name.length() == 0) {
@@ -757,7 +761,7 @@ public class ExtensionLoader<T> {
 
         codeBuidler.append("package " + type.getPackage().getName() + ";");
         codeBuidler.append("\nimport " + ExtensionLoader.class.getName() + ";");
-        // define the class name such as Xyz$Adaptive base on type's simpleName
+        // define the class name (type.getSimpleName() + "$Adaptive" for example:Xyz$Adaptive)
         codeBuidler.append("\npublic class " + type.getSimpleName() + "$Adaptive" + " implements " + type.getCanonicalName() + " {");
 
         for (Method method : methods) {
@@ -813,6 +817,7 @@ public class ExtensionLoader<T> {
                             }
                         }
                     }
+                    // the method with @Adaptive must have the URL parameter type,otherwise it will throw IllegalStateException
                     if (attribMethod == null) {
                         throw new IllegalStateException("fail to create adaptive class for interface " + type.getName()
                                 + ": not found url parameter or url attribute in parameters of method " + method.getName());

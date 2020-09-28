@@ -94,8 +94,13 @@ public class ExtensionLoader<T> {
     private Map<String, IllegalStateException> exceptions = new ConcurrentHashMap<String, IllegalStateException>();
 
     private ExtensionLoader(Class<?> type) {
+        // 一个接口对应一个ExtensionLoader对象
         this.type = type;
-        objectFactory = (type == ExtensionFactory.class ? null : ExtensionLoader.getExtensionLoader(ExtensionFactory.class).getAdaptiveExtension());
+        // ExtensionLoader.getExtensionLoader(ExtensionFactory.class).getAdaptiveExtension()得到AdaptiveExtensionFactory对象
+        // 除了type为ExtensionFactory的ExtensionLoader对象外，其余ExtensionLoader对象的objectFactory都是AdaptiveExtensionFactory对象
+        objectFactory = (type == ExtensionFactory.class ? null :
+                ExtensionLoader.getExtensionLoader(ExtensionFactory.class)
+                .getAdaptiveExtension());
     }
 
     private static <T> boolean withExtensionAnnotation(Class<T> type) {
@@ -636,6 +641,8 @@ public class ExtensionLoader<T> {
                                                     wrappers.add(clazz);
                                                 } catch (NoSuchMethodException e) {
                                                     clazz.getConstructor();
+                                                    // dubbo spi config file support not specify the name of the implement class
+                                                    // alternative solution is use @Extension for example @Extension("impl1") to specify the implement class name
                                                     if (name == null || name.length() == 0) {
                                                         name = findAnnotationName(clazz);
                                                         if (name == null || name.length() == 0) {
@@ -692,6 +699,11 @@ public class ExtensionLoader<T> {
     @SuppressWarnings("deprecation")
     private String findAnnotationName(Class<?> clazz) {
         com.alibaba.dubbo.common.Extension extension = clazz.getAnnotation(com.alibaba.dubbo.common.Extension.class);
+        // 没有@Extension注解时
+        // 1.clazz.getSimpleName()以type.getSimpleName()结尾,则截取clazz.getSimpleName()名称的一部分（去掉type.getSimpleName()部分）
+        // 例子：type=cn.jaychang.demo.Simple,clazz=cn.jaychang.demo.FooSimple 则方法返回foo
+        // 2.clazz.getSimpleName()不是以type.getSimpleName()结尾，则取clazz.getSimpleName()
+        // 例子：type=cn.jaychang.demo.Simple,clazz=cn.jaychang.demo.FooSimple 则方法返回foosimple
         if (extension == null) {
             String name = clazz.getSimpleName();
             if (name.endsWith(type.getSimpleName())) {

@@ -777,6 +777,7 @@ public class ExtensionLoader<T> {
                 code.append("throw new UnsupportedOperationException(\"method ")
                         .append(method.toString()).append(" of interface ")
                         .append(type.getName()).append(" is not adaptive method!\");");
+            //  the method have @Adaptive annotation
             } else {
                 // locate the URL type parameter's index
                 int urlTypeIndex = -1;
@@ -792,16 +793,18 @@ public class ExtensionLoader<T> {
                     String s = String.format("\nif (arg%d == null) throw new IllegalArgumentException(\"url == null\");",
                             urlTypeIndex);
                     code.append(s);
-
+                    // generate com.alibaba.dubbo.common.URL url = arg${urlTypeIndex};
                     s = String.format("\n%s url = arg%d;", URL.class.getName(), urlTypeIndex);
                     code.append(s);
                 }
-                // did not find parameter in URL type
+                // did not find the parameter that is URL type
                 else {
                     String attribMethod = null;
 
                     // find URL getter method
                     LBL_PTS:
+                    // foreach every parameter's methods,to find find the parameter that exists a method starts with 'get' and have public modification and the return type is com.alibaba.dubbo.common.URL.
+                    // For example: public URL getURL() is ok,public URL getX() is ok,public URL getXyz() is ok,public static URL getURL() is wrong,public URL xxxURL() is wrong,public URL getURL(String str) is wrong,public String getURL() is wrong
                     for (int i = 0; i < pts.length; ++i) {
                         Method[] ms = pts[i].getMethods();
                         for (Method m : ms) {
@@ -817,7 +820,8 @@ public class ExtensionLoader<T> {
                             }
                         }
                     }
-                    // the method with @Adaptive must have the URL parameter type,otherwise it will throw IllegalStateException
+                    // method的每个参数，其方法中是否存在返回URL类型，是Public修饰的，非静态的方法
+                    // 不存在的话attribMethod为null
                     if (attribMethod == null) {
                         throw new IllegalStateException("fail to create adaptive class for interface " + type.getName()
                                 + ": not found url parameter or url attribute in parameters of method " + method.getName());
@@ -924,16 +928,20 @@ public class ExtensionLoader<T> {
                 code.append(");");
             }
 
+            // define the method return type and the method name
             codeBuidler.append("\npublic " + rt.getCanonicalName() + " " + method.getName() + "(");
             for (int i = 0; i < pts.length; i++) {
                 if (i > 0) {
                     codeBuidler.append(", ");
                 }
+                // define parameter type
                 codeBuidler.append(pts[i].getCanonicalName());
                 codeBuidler.append(" ");
+                // define parameter name
                 codeBuidler.append("arg" + i);
             }
             codeBuidler.append(")");
+            // declare throws exceptions if needed
             if (ets.length > 0) {
                 codeBuidler.append(" throws ");
                 for (int i = 0; i < ets.length; i++) {
@@ -944,6 +952,7 @@ public class ExtensionLoader<T> {
                 }
             }
             codeBuidler.append(" {");
+            // append method body( code is the method body string)
             codeBuidler.append(code.toString());
             codeBuidler.append("\n}");
         }

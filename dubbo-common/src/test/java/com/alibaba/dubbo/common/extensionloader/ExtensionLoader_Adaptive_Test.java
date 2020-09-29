@@ -28,6 +28,8 @@ import com.alibaba.dubbo.common.extensionloader.ext4.NoUrlParamExt;
 import com.alibaba.dubbo.common.extensionloader.ext5.NoAdaptiveMethodExt;
 import com.alibaba.dubbo.common.extensionloader.ext6_inject.Ext6;
 import com.alibaba.dubbo.common.extensionloader.ext6_inject.impl.Ext6Impl2;
+import com.alibaba.dubbo.common.extensionloader.ext9.Foo;
+import com.alibaba.dubbo.common.extensionloader.ext9.NoUrlParamButExistsGetMethodInParamExt;
 import com.alibaba.dubbo.common.utils.LogUtil;
 
 import junit.framework.Assert;
@@ -319,5 +321,14 @@ public class ExtensionLoader_Adaptive_Test {
 
         Ext6Impl2 impl = (Ext6Impl2) ext;
         assertNull(impl.getList());
+    }
+
+    @Test
+    public void test_getAdaptiveExtension_NoUrlParamButExistsGetMethodInParam() throws Exception {
+        NoUrlParamButExistsGetMethodInParamExt ext9 = ExtensionLoader.getExtensionLoader(NoUrlParamButExistsGetMethodInParamExt.class)              .getAdaptiveExtension();
+        Foo foo = new Foo();
+        URL url = URL.valueOf("dubbo://127.0.0.1:20880/k1=v1&k2=v2");
+        foo.setUrl(url);
+        ext9.echo("dubbo",foo);
     }
 }

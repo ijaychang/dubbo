@@ -803,7 +803,7 @@ public class ExtensionLoader<T> {
 
                     // find URL getter method
                     LBL_PTS:
-                    // foreach every parameter's methods,to find find the parameter that exists a method starts with 'get' and have public modification and the return type is com.alibaba.dubbo.common.URL.
+                    // foreach every parameter's methods,to find the parameter that exists a method starts with 'get' and have public modification and the return type is com.alibaba.dubbo.common.URL.
                     // For example: public URL getURL() is ok,public URL getX() is ok,public URL getXyz() is ok,public static URL getURL() is wrong,public URL xxxURL() is wrong,public URL getURL(String str) is wrong,public String getURL() is wrong
                     for (int i = 0; i < pts.length; ++i) {
                         Method[] ms = pts[i].getMethods();

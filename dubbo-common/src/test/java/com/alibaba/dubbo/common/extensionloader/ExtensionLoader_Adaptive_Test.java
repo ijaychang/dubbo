@@ -325,7 +325,7 @@ public class ExtensionLoader_Adaptive_Test {
 
     @Test
     public void test_getAdaptiveExtension_NoUrlParamButExistsGetMethodInParam() throws Exception {
-        NoUrlParamButExistsGetMethodInParamExt ext9 = ExtensionLoader.getExtensionLoader(NoUrlParamButExistsGetMethodInParamExt.class)              .getAdaptiveExtension();
+        NoUrlParamButExistsGetMethodInParamExt ext9 = ExtensionLoader.getExtensionLoader(NoUrlParamButExistsGetMethodInParamExt.class).getAdaptiveExtension();
         Foo foo = new Foo();
         URL url = URL.valueOf("dubbo://127.0.0.1:20880/k1=v1&k2=v2");
         foo.setUrl(url);

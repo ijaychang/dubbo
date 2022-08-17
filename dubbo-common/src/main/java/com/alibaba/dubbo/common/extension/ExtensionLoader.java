@@ -707,7 +707,7 @@ public class ExtensionLoader<T> {
         // 1.clazz.getSimpleName()以type.getSimpleName()结尾,则截取clazz.getSimpleName()名称的一部分（去掉type.getSimpleName()部分）
         // 例子：type=cn.jaychang.demo.Simple,clazz=cn.jaychang.demo.FooSimple 则方法返回foo
         // 2.clazz.getSimpleName()不是以type.getSimpleName()结尾，则取clazz.getSimpleName()
-        // 例子：type=cn.jaychang.demo.Simple,clazz=cn.jaychang.demo.FooSimple 则方法返回foosimple
+        // 例子：type=cn.jaychang.demo.Simple,clazz=cn.jaychang.demo.FooBar foobar
         if (extension == null) {
             String name = clazz.getSimpleName();
             if (name.endsWith(type.getSimpleName())) {

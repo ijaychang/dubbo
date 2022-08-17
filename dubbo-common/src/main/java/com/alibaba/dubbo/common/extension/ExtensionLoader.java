@@ -778,7 +778,8 @@ public class ExtensionLoader<T> {
                         .append(method.toString()).append(" of interface ")
                         .append(type.getName()).append(" is not adaptive method!\");");
             //  the method have @Adaptive annotation
-            } else {
+            }
+            else {
                 // locate the URL type parameter's index
                 int urlTypeIndex = -1;
                 for (int i = 0; i < pts.length; ++i) {

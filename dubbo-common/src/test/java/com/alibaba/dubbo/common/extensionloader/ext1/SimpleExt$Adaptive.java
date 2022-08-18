@@ -1,4 +1,5 @@
-// 该代码是由com.alibaba.dubbo.common.extension.ExtensionLoader.createAdaptiveExtensionClassCode生成，把这段字符串给拷出来了，以便结合生成的代码理解dubbo ExtensionLoader的动态编译过程
+// 该代码是由com.alibaba.dubbo.common.extension.ExtensionLoader.createAdaptiveExtensionClassCode生成，即运行时生成的
+// 这里只是把这段字符串代码给拷出来了，以便结合生成的代码理解dubbo ExtensionLoader的动态编译过程，同时也可以用来debug了 (￣▽￣)
 package com.alibaba.dubbo.common.extensionloader.ext1;
 
 import com.alibaba.dubbo.common.extension.ExtensionLoader;

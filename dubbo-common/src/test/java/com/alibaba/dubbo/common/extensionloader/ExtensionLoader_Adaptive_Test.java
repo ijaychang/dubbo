@@ -90,6 +90,8 @@ public class ExtensionLoader_Adaptive_Test {
         String echo = ext.yell(url, "haha");
         assertEquals("Ext1Impl2-yell", echo);
 
+        // com.alibaba.dubbo.common.extensionloader.ext1.SimpleExt.yell 方法上@Adaptive注解，value为{"key1","key2"}，当key1,key2同时存在且不为空，key1优先级大于key2
+        // 所以会调用SimpleExtImpl实例的yell方法，返回字符串"Ext1Impl3-yell"
         url = url.addParameter("key1", "impl3"); // note: URL is value's type
         echo = ext.yell(url, "haha");
         assertEquals("Ext1Impl3-yell", echo);

@@ -505,6 +505,7 @@ public class ExtensionLoader<T> {
             Set<Class<?>> wrapperClasses = cachedWrapperClasses;
             // 如果wrapperClasses不为空，instance会经过wrapperClass的包装,如果是有多个，那么经过多层包装
             // instance = injectExtension((T) wrapperClass.getConstructor(type).newInstance(instance)); 写的非常棒，实现多层包装
+            // 因此要实现包装，实现类需要有type的构造函数
             if (wrapperClasses != null && wrapperClasses.size() > 0) {
                 for (Class<?> wrapperClass : wrapperClasses) {
                     instance = injectExtension((T) wrapperClass.getConstructor(type).newInstance(instance));

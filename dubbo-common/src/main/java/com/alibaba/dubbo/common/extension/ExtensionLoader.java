@@ -626,6 +626,9 @@ public class ExtensionLoader<T> {
                                                         + clazz.getName() + "is not subtype of interface.");
                                             }
                                             // when the @Adaptive exists on clazz,then use cachedAdaptiveClass to cached the clazz
+                                            // 实现类存在@Adaptive注解，cachedAdaptiveClass就会缓存该实现类的class对象，getAdaptiveExtension() 调用的时候返回的就是cachedAdaptiveClass实例化出来的对象了
+                                            // 实现类中仅允许一个存在@Adaptive注解，否则报”More than 1 adaptive class found“错误
+                                            // 所有实现类中都不存在@Adaptive注解，那么调用getAdaptiveExtension()方法，会自动生成一个type.getSimpleName()$Adaptive的实现类
                                             if (clazz.isAnnotationPresent(Adaptive.class)) {
                                                 if (cachedAdaptiveClass == null) {
                                                     cachedAdaptiveClass = clazz;
@@ -636,6 +639,7 @@ public class ExtensionLoader<T> {
                                                 }
                                             } else {
                                                 try {
+                                                    // 如果实现类存在带type参数的构造函数，那么将该实现类class对象放到cachedWrapperClasses缓存起来
                                                     clazz.getConstructor(type);
                                                     Set<Class<?>> wrappers = cachedWrapperClasses;
                                                     if (wrappers == null) {
@@ -651,6 +655,8 @@ public class ExtensionLoader<T> {
                                                         name = findAnnotationName(clazz);
                                                         if (name == null || name.length() == 0) {
                                                             if (clazz.getSimpleName().length() > type.getSimpleName().length()
+                                                                    // clazz.getSimpleName().endsWith(type.getSimpleName()) 表示实现类的SimpleName以type的SimpleName结尾
+                                                                    // 举例：clazz.getSimpleName()为"FooSimple",type.getSimpleName()为Simple,此时name就是foo
                                                                     && clazz.getSimpleName().endsWith(type.getSimpleName())) {
                                                                 name = clazz.getSimpleName().substring(0, clazz.getSimpleName().length() - type.getSimpleName().length()).toLowerCase();
                                                             } else {
@@ -661,15 +667,22 @@ public class ExtensionLoader<T> {
                                                     String[] names = NAME_SEPARATOR.split(name);
                                                     if (names != null && names.length > 0) {
                                                         Activate activate = clazz.getAnnotation(Activate.class);
+                                                        // 实现类存在@Activate注解，则缓存names[0]=>activate
                                                         if (activate != null) {
                                                             cachedActivates.put(names[0], activate);
                                                         }
                                                         for (String n : names) {
                                                             if (!cachedNames.containsKey(clazz)) {
+                                                                // cachedNames是实现类与query name的Map
+                                                                // 如果name存在逗号，cachedNames只会存一次，这与extensionClasses有所区别
+                                                                // 举例： name="a,b,c" cachedNames仅有一个键值对是 clazz=>"a"
                                                                 cachedNames.put(clazz, n);
                                                             }
                                                             Class<?> c = extensionClasses.get(n);
                                                             if (c == null) {
+                                                                // extensionClasses与cachedNames刚好相反，是query name与实现类的Map
+                                                                // 如果name存在逗号，那么extensionClasses会存一多次
+                                                                // 举例：name="a,b,c" extensionClasses有3个键值对是 "a"=>clazz,"b"=>clazz,"c"=>clazz
                                                                 extensionClasses.put(n, clazz);
                                                             } else if (c != clazz) {
                                                                 throw new IllegalStateException("Duplicate extension " + type.getName() + " name " + n + " on " + c.getName() + " and " + clazz.getName());
@@ -859,6 +872,7 @@ public class ExtensionLoader<T> {
                     value = new String[]{sb.toString()};
                 }
 
+                // 接口方法参数中是否存在com.alibaba.dubbo.rpc.Invocation类型的参数
                 boolean hasInvocation = false;
                 for (int i = 0; i < pts.length; ++i) {
                     if (pts[i].getName().equals("com.alibaba.dubbo.rpc.Invocation")) {
@@ -873,15 +887,19 @@ public class ExtensionLoader<T> {
                 }
 
                 String defaultExtName = cachedDefaultName;
+                // getNameCode是为了得到extName，扩展实现类的query name
                 String getNameCode = null;
                 for (int i = value.length - 1; i >= 0; --i) {
+                    // value字符串数组的最后一项
                     if (i == value.length - 1) {
                         if (null != defaultExtName) {
+                            // 接口方法带@Adaptive注解且value字符串数组的某一个值不是protocol，接口方法参数有com.alibaba.dubbo.rpc.Invocation类型
                             if (!"protocol".equals(value[i]))
                                 if (hasInvocation)
                                     getNameCode = String.format("url.getMethodParameter(methodName, \"%s\", \"%s\")", value[i], defaultExtName);
                                 else
                                     getNameCode = String.format("url.getParameter(\"%s\", \"%s\")", value[i], defaultExtName);
+                            // value字符串数组项的值为"protocol"
                             else
                                 getNameCode = String.format("( url.getProtocol() == null ? \"%s\" : url.getProtocol() )", defaultExtName);
                         } else {
@@ -890,9 +908,11 @@ public class ExtensionLoader<T> {
                                     getNameCode = String.format("url.getMethodParameter(methodName, \"%s\", \"%s\")", value[i], defaultExtName);
                                 else
                                     getNameCode = String.format("url.getParameter(\"%s\")", value[i]);
+                                // value字符串数组项的值为"protocol"
                             else
                                 getNameCode = "url.getProtocol()";
                         }
+                    // 不是value字符串数组的最后一项
                     } else {
                         if (!"protocol".equals(value[i]))
                             if (hasInvocation)

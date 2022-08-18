@@ -890,7 +890,10 @@ public class ExtensionLoader<T> {
                 }
 
                 String defaultExtName = cachedDefaultName;
-                // getNameCode是为了得到extName，扩展实现类的query name
+                // getNameCode是为了从url得到extName，即实现类的query name
+                // 如果type是com.alibaba.dubbo.common.extensionloader.ext1.SimpleExt
+                // 当type接口方法上的@Adaptive没有提供value，那么getNameCode就会得到 url.getParameter("simple.ext","impl1")
+                // 当type接口方法上的@Adaptive({"key1", "key2"}),value是数组的时候，getNameCode就会得到 url.getParameter("key1", url.getParameter("key2", "impl1"))，那也就是说当key1,key2同时不为空的时候，key1优先级高于key2
                 String getNameCode = null;
                 for (int i = value.length - 1; i >= 0; --i) {
                     // value字符串数组的最后一项

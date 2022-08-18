@@ -21,7 +21,8 @@ import com.alibaba.dubbo.common.compiler.support.AdaptiveCompiler;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
-public class ExtensionLoader_Adaptive_UseJdkCompiler_Test extends ExtensionLoader_Adaptive_Test {
+public class
+ExtensionLoader_Adaptive_UseJdkCompiler_Test extends ExtensionLoader_Adaptive_Test {
     @BeforeClass
     public static void setUp() throws Exception {
         AdaptiveCompiler.setDefaultCompiler("jdk");

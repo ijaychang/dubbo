@@ -528,8 +528,10 @@ public class ExtensionLoader<T> {
                         Class<?> pt = method.getParameterTypes()[0];
                         try {
                             String property = method.getName().length() > 3 ? method.getName().substring(3, 4).toLowerCase() + method.getName().substring(4) : "";
+                            // 获取对应pt类型的Adaptive对象(可能是动态编译生成的对象，也可能是自定义的Adaptive对象)
                             Object object = objectFactory.getExtension(pt, property);
                             if (object != null) {
+                                // 注入对应pt类型的Adaptive对象
                                 method.invoke(instance, object);
                             }
                         } catch (Exception e) {
@@ -760,7 +762,7 @@ public class ExtensionLoader<T> {
     }
 
     private String createAdaptiveExtensionClassCode() {
-        StringBuilder codeBuidler = new StringBuilder();
+        StringBuilder codeBuilder = new StringBuilder();
         Method[] methods = type.getMethods();
         // check to see if at least one method with @Adaptive exists
         // if not exists will throw a IllegalStateException
@@ -775,10 +777,10 @@ public class ExtensionLoader<T> {
         if (!hasAdaptiveAnnotation)
             throw new IllegalStateException("No adaptive method on extension " + type.getName() + ", refuse to create the adaptive class!");
 
-        codeBuidler.append("package " + type.getPackage().getName() + ";");
-        codeBuidler.append("\nimport " + ExtensionLoader.class.getName() + ";");
+        codeBuilder.append("package " + type.getPackage().getName() + ";");
+        codeBuilder.append("\nimport " + ExtensionLoader.class.getName() + ";");
         // define the class name (type.getSimpleName() + "$Adaptive" for example:Xyz$Adaptive)
-        codeBuidler.append("\npublic class " + type.getSimpleName() + "$Adaptive" + " implements " + type.getCanonicalName() + " {");
+        codeBuilder.append("\npublic class " + type.getSimpleName() + "$Adaptive" + " implements " + type.getCanonicalName() + " {");
 
         for (Method method : methods) {
             Class<?> rt = method.getReturnType();
@@ -788,7 +790,7 @@ public class ExtensionLoader<T> {
             Adaptive adaptiveAnnotation = method.getAnnotation(Adaptive.class);
             StringBuilder code = new StringBuilder(512);
             if (adaptiveAnnotation == null) {
-                // if adaptiveAnnotation is null then the method body as fllow
+                // if adaptiveAnnotation is null then the method body as follow
                 // throw new UnsupportedOperationException("method public abstract void com.alibaba.dubbo.rpc.Protocol.destroy() of interface com.alibaba.dubbo.rpc.Protocol is not adaptive method!");
                 code.append("throw new UnsupportedOperationException(\"method ")
                         .append(method.toString()).append(" of interface ")
@@ -861,7 +863,7 @@ public class ExtensionLoader<T> {
                 if (value.length == 0) {
                     char[] charArray = type.getSimpleName().toCharArray();
                     StringBuilder sb = new StringBuilder(128);
-                    // result of type.getSimpleName() change to lower case(when come capital letter add '.'; for example: FooBar->foo.bar )
+                    // result of type.getSimpleName() change to lower case(when come capital letter add '.'; for example: FooBar->foo.bar,Foo->foo )
                     for (int i = 0; i < charArray.length; i++) {
                         if (Character.isUpperCase(charArray[i])) {
                             if (i != 0) {
@@ -960,38 +962,38 @@ public class ExtensionLoader<T> {
             }
 
             // define the method return type and the method name
-            codeBuidler.append("\npublic " + rt.getCanonicalName() + " " + method.getName() + "(");
+            codeBuilder.append("\npublic " + rt.getCanonicalName() + " " + method.getName() + "(");
             for (int i = 0; i < pts.length; i++) {
                 if (i > 0) {
-                    codeBuidler.append(", ");
+                    codeBuilder.append(", ");
                 }
                 // define parameter type
-                codeBuidler.append(pts[i].getCanonicalName());
-                codeBuidler.append(" ");
+                codeBuilder.append(pts[i].getCanonicalName());
+                codeBuilder.append(" ");
                 // define parameter name
-                codeBuidler.append("arg" + i);
+                codeBuilder.append("arg" + i);
             }
-            codeBuidler.append(")");
+            codeBuilder.append(")");
             // declare throws exceptions if needed
             if (ets.length > 0) {
-                codeBuidler.append(" throws ");
+                codeBuilder.append(" throws ");
                 for (int i = 0; i < ets.length; i++) {
                     if (i > 0) {
-                        codeBuidler.append(", ");
+                        codeBuilder.append(", ");
                     }
-                    codeBuidler.append(ets[i].getCanonicalName());
+                    codeBuilder.append(ets[i].getCanonicalName());
                 }
             }
-            codeBuidler.append(" {");
+            codeBuilder.append(" {");
             // append method body( code is the method body string)
-            codeBuidler.append(code.toString());
-            codeBuidler.append("\n}");
+            codeBuilder.append(code.toString());
+            codeBuilder.append("\n}");
         }
-        codeBuidler.append("\n}");
+        codeBuilder.append("\n}");
         if (logger.isDebugEnabled()) {
-            logger.debug(codeBuidler.toString());
+            logger.debug(codeBuilder.toString());
         }
-        return codeBuidler.toString();
+        return codeBuilder.toString();
     }
 
     @Override

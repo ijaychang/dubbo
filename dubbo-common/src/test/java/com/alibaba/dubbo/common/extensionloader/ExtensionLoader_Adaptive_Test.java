@@ -28,8 +28,6 @@ import com.alibaba.dubbo.common.extensionloader.ext4.NoUrlParamExt;
 import com.alibaba.dubbo.common.extensionloader.ext5.NoAdaptiveMethodExt;
 import com.alibaba.dubbo.common.extensionloader.ext6_inject.Ext6;
 import com.alibaba.dubbo.common.extensionloader.ext6_inject.impl.Ext6Impl2;
-import com.alibaba.dubbo.common.extensionloader.ext9.Foo;
-import com.alibaba.dubbo.common.extensionloader.ext9.NoUrlParamButExistsGetMethodInParamExt;
 import com.alibaba.dubbo.common.utils.LogUtil;
 
 import junit.framework.Assert;
@@ -102,15 +100,18 @@ public class ExtensionLoader_Adaptive_Test {
         UseProtocolKeyExt ext = ExtensionLoader.getExtensionLoader(UseProtocolKeyExt.class).getAdaptiveExtension();
 
         {
+            // url中既没有key1也没有protocol，则取默认query name，即是"impl1"，echo返回"Ext3Impl1-echo"
             String echo = ext.echo(URL.valueOf("1.2.3.4:20880"), "s");
             assertEquals("Ext3Impl1-echo", echo); // default value
 
             Map<String, String> map = new HashMap<String, String>();
             URL url = new URL("impl3", "1.2.3.4", 1010, "path1", map);
 
+            // url中有protocol，则取query name为"impl3"，echo返回"Ext3Impl3-echo"
             echo = ext.echo(url, "s");
             assertEquals("Ext3Impl3-echo", echo); // use 2nd key, protocol
 
+            // url中既有key1又有protocol，则优先取key1的值，所以query name为"impl2",echo返回"Ext3Impl2-echo"
             url = url.addParameter("key1", "impl2");
             echo = ext.echo(url, "s");
             assertEquals("Ext3Impl2-echo", echo); // use 1st key, key1
@@ -118,15 +119,18 @@ public class ExtensionLoader_Adaptive_Test {
 
         {
 
+            // url中key2,protocol对应的值都为null，则yell返回"Ext3Impl1-yell"
             Map<String, String> map = new HashMap<String, String>();
             URL url = new URL(null, "1.2.3.4", 1010, "path1", map);
             String yell = ext.yell(url, "s");
             assertEquals("Ext3Impl1-yell", yell); // default value
 
+            // url中key2不为null，则yell返回"Ext3Impl2-yell"
             url = url.addParameter("key2", "impl2"); // use 2nd key, key2
             yell = ext.yell(url, "s");
             assertEquals("Ext3Impl2-yell", yell);
 
+            // url中protocol对应的值不为null，则yell返回"Ext3Impl1-yell"
             url = url.setProtocol("impl3"); // use 1st key, protocol
             yell = ext.yell(url, "d");
             assertEquals("Ext3Impl3-yell", yell);
@@ -256,7 +260,7 @@ public class ExtensionLoader_Adaptive_Test {
     }
 
     @Test
-    public void test_urlHolder_getAdaptiveExtension_ExceptionWhenNotAdativeMethod() throws Exception {
+    public void test_urlHolder_getAdaptiveExtension_ExceptionWhenNotAdaptiveMethod() throws Exception {
         Ext2 ext = ExtensionLoader.getExtensionLoader(Ext2.class).getAdaptiveExtension();
 
         Map<String, String> map = new HashMap<String, String>();
@@ -302,7 +306,8 @@ public class ExtensionLoader_Adaptive_Test {
     @Test
     public void test_getAdaptiveExtension_inject() throws Exception {
         LogUtil.start();
-        Ext6 ext = ExtensionLoader.getExtensionLoader(Ext6.class).getAdaptiveExtension();
+        Ext6 ext = ExtensionLoader.getExtensionLoader(Ext6.class)
+                .getAdaptiveExtension();
 
         URL url = new URL("p1", "1.2.3.4", 1010, "path1");
         url = url.addParameters("ext6", "impl1");
@@ -323,14 +328,5 @@ public class ExtensionLoader_Adaptive_Test {
 
         Ext6Impl2 impl = (Ext6Impl2) ext;
         assertNull(impl.getList());
-    }
-
-    @Test
-    public void test_getAdaptiveExtension_NoUrlParamButExistsGetMethodInParam() throws Exception {
-        NoUrlParamButExistsGetMethodInParamExt ext9 = ExtensionLoader.getExtensionLoader(NoUrlParamButExistsGetMethodInParamExt.class).getAdaptiveExtension();
-        Foo foo = new Foo();
-        URL url = URL.valueOf("dubbo://127.0.0.1:20880/k1=v1&k2=v2");
-        foo.setUrl(url);
-        ext9.echo("dubbo",foo);
     }
 }

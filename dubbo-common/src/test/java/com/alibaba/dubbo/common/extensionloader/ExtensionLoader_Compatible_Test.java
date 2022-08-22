@@ -29,6 +29,8 @@ public class ExtensionLoader_Compatible_Test {
 
     @Test
     public void test_getExtension() throws Exception {
+        // com.alibaba.dubbo.common.extensionloader.compatible.CompatibleExt 文件内允许没有query name
+        // 如果没有query name，那么会去看实现类的@Extension注解，取出value值，作为query name，不过@Extension已被废弃，所以也不建议这么做了
         assertTrue(ExtensionLoader.getExtensionLoader(CompatibleExt.class).getExtension("impl1") instanceof CompatibleExtImpl1);
         assertTrue(ExtensionLoader.getExtensionLoader(CompatibleExt.class).getExtension("impl2") instanceof CompatibleExtImpl2);
     }

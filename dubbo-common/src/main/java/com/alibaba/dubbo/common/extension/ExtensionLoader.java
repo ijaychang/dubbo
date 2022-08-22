@@ -465,6 +465,8 @@ public class ExtensionLoader<T> {
     }
 
     private IllegalStateException findException(String name) {
+        // exceptions的key是无法执行Class.forName的类全限定名，name是query name，也就是说要类全限定名包含name字符串，才会找到异常，这感觉不太合理
+        // 所以我这里推断这个exceptions的key应该是query name才对，是作者写错了，不过即使这里写错了，不过也并不是很重要
         for (Map.Entry<String, IllegalStateException> entry : exceptions.entrySet()) {
             if (entry.getKey().toLowerCase().contains(name.toLowerCase())) {
                 return entry.getValue();

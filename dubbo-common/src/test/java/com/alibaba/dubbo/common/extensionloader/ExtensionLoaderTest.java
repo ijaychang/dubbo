@@ -152,7 +152,7 @@ public class ExtensionLoaderTest {
     }
 
     @Test
-    public void test_getExtension_ExceptionNoExtension_WrapperNotAffactName() throws Exception {
+    public void test_getExtension_ExceptionNoExtension_WrapperNotAffectName() throws Exception {
         try {
             ExtensionLoader.getExtensionLoader(WrappedExt.class).getExtension("XXX");
             fail();

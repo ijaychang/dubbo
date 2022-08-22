@@ -16,6 +16,7 @@
  */
 package com.alibaba.dubbo.common.serialize.serialization;
 
+import com.alibaba.dubbo.common.model.person.*;
 import com.alibaba.dubbo.common.serialize.ObjectInput;
 import com.alibaba.dubbo.common.serialize.ObjectOutput;
 import com.alibaba.dubbo.common.serialize.support.hessian.Hessian2Serialization;
@@ -24,11 +25,12 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
+import static org.junit.matchers.JUnitMatchers.containsString;
 
 public class Hessian2SerializationTest extends AbstractSerializationPersonFailTest {
     {
@@ -196,6 +198,59 @@ public class Hessian2SerializationTest extends AbstractSerializationPersonFailTe
         } catch (ArrayIndexOutOfBoundsException e) {
         }
         // NOTE: Hessian2 throws ArrayIndexOutOfBoundsException instead of IOException, let's live with this.
+    }
+
+    BigPerson bigPerson;
+    {
+        bigPerson = new BigPerson();
+        bigPerson.setPersonId("superman111");
+        bigPerson.setLoginName("superman");
+        bigPerson.setStatus(PersonStatus.ENABLED);
+        bigPerson.setEmail("sm@1.com");
+        bigPerson.setPenName("pname");
+
+        ArrayList<Phone> phones = new ArrayList<Phone>();
+        Phone phone1 = new Phone("86", "0571", "87654321", "001");
+        Phone phone2 = new Phone("86", "0571", "87654322", "002");
+        phones.add(phone1);
+        phones.add(phone2);
+
+        PersonInfo pi = new PersonInfo();
+        pi.setPhones(phones);
+        Phone fax = new Phone("86", "0571", "87654321", null);
+        pi.setFax(fax);
+        FullAddress addr = new FullAddress("CN", "zj", "3480", "wensanlu", "315000");
+        pi.setFullAddress(addr);
+        pi.setMobileNo("13584652131");
+        pi.setMale(true);
+        pi.setDepartment("b2b");
+        pi.setHomepageUrl("www.capcom.com");
+        pi.setJobTitle("qa");
+        pi.setName("superman");
+
+        bigPerson.setInfoProfile(pi);
+    }
+
+    @Test
+    public void test_Bean_withType() throws Exception {
+
+        ObjectOutput objectOutput = serialization.serialize(url, byteArrayOutputStream);
+        objectOutput.writeObject(bigPerson);
+        objectOutput.flushBuffer();
+
+        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(
+                byteArrayOutputStream.toByteArray());
+        ObjectInput deserialize = serialization.deserialize(url, byteArrayInputStream);
+
+        BigPerson bigPerson2 = deserialize.readObject(BigPerson.class);
+        assertEquals(bigPerson,bigPerson2);
+        try {
+            BigPerson bigPerson3 = deserialize.readObject(BigPerson.class);
+            fail();
+        } catch (IOException e) {
+            assertThat(e.getMessage(),containsString("readObject: unexpected end of file"));
+        }
+
     }
 
     @Ignore("type missing, Byte -> Integer")

@@ -647,6 +647,9 @@ public class ExtensionLoader<T> {
                                             } else {
                                                 try {
                                                     // 如果实现类存在带type参数的构造函数，那么将该实现类class对象放到cachedWrapperClasses缓存起来
+                                                    // Dubbo AOP是通过 wrapper方式来实现的，也就是代理类，要实现dubbo aop 实现类需要含实现接口参数的构造函数，这样的实现类我们叫做WrapperClass，这样的WrapperClass可以有多个，
+                                                    // 且WrapperClass不会存到cachedNames，也不会存到extensionClasses中。就是不能通过调用ExtensionLoader的getExtension方法 query name来得到WrapperClass的实例，
+                                                    // WrapperClass的作用就是给实现类添加额外通用的统一处理逻辑，减少冗余代码。
                                                     clazz.getConstructor(type);
                                                     Set<Class<?>> wrappers = cachedWrapperClasses;
                                                     if (wrappers == null) {
@@ -656,7 +659,7 @@ public class ExtensionLoader<T> {
                                                     wrappers.add(clazz);
                                                 } catch (NoSuchMethodException e) {
                                                     clazz.getConstructor();
-                                                    // dubbo spi config file support not specify the name of the implement class
+                                                    // dubbo spi config file support not specify the name of the implement class (we called query name)
                                                     // alternative solution is use @Extension for example @Extension("impl1") to specify the implement class's query name
                                                     if (name == null || name.length() == 0) {
                                                         name = findAnnotationName(clazz);

@@ -29,7 +29,7 @@ import java.io.ByteArrayInputStream;
 
 import static org.junit.Assert.fail;
 
-public class FastJsonSerializationTest extends AbstractSerializationPersionOkTest {
+public class FastJsonSerializationTest extends AbstractSerializationPersonOkTest {
     {
         serialization = new FastJsonSerialization();
     }

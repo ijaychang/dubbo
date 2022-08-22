@@ -24,7 +24,7 @@ import org.junit.Test;
 /**
  * FIXME Temporarily ignore Json Serialization failure.
  */
-public class JsonSerializationTest extends AbstractSerializationPersionOkTest {
+public class JsonSerializationTest extends AbstractSerializationPersonOkTest {
     {
         serialization = new JsonSerialization();
     }

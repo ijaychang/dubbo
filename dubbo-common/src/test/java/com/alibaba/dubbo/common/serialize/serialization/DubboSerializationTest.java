@@ -21,7 +21,7 @@ import com.alibaba.dubbo.common.serialize.support.dubbo.DubboSerialization;
 import org.junit.Ignore;
 import org.junit.Test;
 
-public class DubboSerializationTest extends AbstractSerializationPersionFailTest {
+public class DubboSerializationTest extends AbstractSerializationPersonFailTest {
     {
         serialization = new DubboSerialization();
     }

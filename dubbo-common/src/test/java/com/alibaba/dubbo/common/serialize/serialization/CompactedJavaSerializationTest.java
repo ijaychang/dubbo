@@ -18,7 +18,7 @@ package com.alibaba.dubbo.common.serialize.serialization;
 
 import com.alibaba.dubbo.common.serialize.support.java.CompactedJavaSerialization;
 
-public class CompactedJavaSerializationTest extends AbstractSerializationPersionFailTest {
+public class CompactedJavaSerializationTest extends AbstractSerializationPersonFailTest {
     {
         serialization = new CompactedJavaSerialization();
     }

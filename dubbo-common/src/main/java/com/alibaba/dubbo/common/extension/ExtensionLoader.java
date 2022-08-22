@@ -614,7 +614,9 @@ public class ExtensionLoader<T> {
                         try {
                             String line = null;
                             while ((line = reader.readLine()) != null) {
+                                // 定位 # 位置
                                 final int ci = line.indexOf('#');
+                                // 截取 # 之前的字符串，# 之后的内容为注释，需要忽略
                                 if (ci >= 0) line = line.substring(0, ci);
                                 line = line.trim();
                                 if (line.length() > 0) {

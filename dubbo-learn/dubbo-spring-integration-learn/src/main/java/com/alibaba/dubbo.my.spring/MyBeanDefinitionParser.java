@@ -51,6 +51,7 @@ public class MyBeanDefinitionParser implements BeanDefinitionParser {
                 System.out.println(node);
             }
         }
+        parserContext.getRegistry().registerBeanDefinition("xyz", beanDefinition);
         return beanDefinition;
     }
 }

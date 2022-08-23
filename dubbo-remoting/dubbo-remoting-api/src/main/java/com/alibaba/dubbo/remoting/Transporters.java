@@ -76,7 +76,8 @@ public class Transporters {
     }
 
     public static Transporter getTransporter() {
-        return ExtensionLoader.getExtensionLoader(Transporter.class).getAdaptiveExtension();
+        return ExtensionLoader.getExtensionLoader(Transporter.class)
+                .getAdaptiveExtension();
     }
 
 }

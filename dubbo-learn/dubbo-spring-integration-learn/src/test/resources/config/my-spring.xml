@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:my="http://tech.meeleet.com/schema/my"
+       xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation=
+               "http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+                http://tech.meeleet.com/schema/my http://tech.meeleet.com/schema/my/my.xsd">
+
+    <my:application name="exampleApplication" version="1.0.0"/>
+
+    <my:service interface="com.alibaba.dubbo.my.spring.DemoService" ref="demoService">
+        <my:parameter key="k1" value="v1"/>
+        <my:parameter key="k2" value="v2"/>
+    </my:service>
+
+
+    <bean id="demoService" class="com.alibaba.dubbo.my.spring.DemoServiceImpl"/>
+</beans>

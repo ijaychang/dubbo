@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:pp="http://tech.meeleet.com/schema/pp"
+       xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation=
+               "http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+                http://tech.meeleet.com/schema/pp http://tech.meeleet.com/schema/pp/pp.xsd">
+
+
+    <pp:person id="1001">
+        <pp:firstname>jay</pp:firstname>
+        <pp:lastname>chang</pp:lastname>
+        <pp:age>24</pp:age>
+        <pp:sex>male</pp:sex>
+    </pp:person>
+
+
+    <pp:person id="1002">
+        <pp:firstname>james</pp:firstname>
+        <pp:lastname>chang</pp:lastname>
+        <pp:sex>female</pp:sex>
+    </pp:person>
+
+    <pp:member id="1003" level="10">
+        <pp:firstname>jeremy</pp:firstname>
+        <pp:lastname>lin</pp:lastname>
+        <pp:age>37</pp:age>
+        <pp:sex>female</pp:sex>
+        <pp:address>qiantang district hangzhou</pp:address>
+        <pp:city>hangzhou</pp:city>
+        <pp:province>zhejiang</pp:province>
+    </pp:member>
+
+    <bean id="demoService" class="com.alibaba.dubbo.my.spring.DemoServiceImpl"/>
+</beans>

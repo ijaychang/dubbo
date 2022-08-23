@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            targetNamespace="http://tech.meeleet.com/schema/pp"
+            elementFormDefault="qualified">
+    <xsd:annotation>
+        <xsd:documentation>
+            <![CDATA[ Namespace support for the person. ]]></xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:simpleType name="ageType">
+        <xsd:restriction base="xsd:integer">
+            <xsd:minInclusive value="0"/>
+            <xsd:maxInclusive value="120"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="sexType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="female"/>
+            <xsd:enumeration value="male"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="personType">
+        <!-- 定义元素 -->
+        <xsd:sequence>
+            <xsd:element name="firstname" type="xsd:string"/>
+            <xsd:element name="lastname" type="xsd:string"/>
+
+            <xsd:element name="age" type="ageType"/>
+            <xsd:element name="sex" type="sexType" default="male"/>
+        </xsd:sequence>
+        <!-- 定义属性 -->
+        <xsd:attribute name="id" type="xsd:nonNegativeInteger"/>
+    </xsd:complexType>
+
+    <!-- 继承 -->
+    <xsd:complexType name="memberType">
+        <xsd:complexContent>
+            <!-- 扩展字personType -->
+            <xsd:extension base="personType">
+                <!-- 增加member特有元素address,city,province -->
+                <xsd:sequence>
+                    <!-- The use attribute is valid only for xs:attribute elements.-->
+                    <!-- Element option: <xs:element name="address" type="ageType" minOccurs="0"/> -->
+                    <xsd:element name="address" type="xsd:string" minOccurs="0"/>
+                    <!-- Element required: <xs:element name="city" type="ageType" minOccurs="1"/> -->
+                    <xsd:element name="city" type="xsd:string" minOccurs="1"/>
+                    <xsd:element name="province" type="xsd:string" minOccurs="1"/>
+                </xsd:sequence>
+                <!-- 定义member元素的level属性-->
+                <xsd:attribute name="level" type="xsd:integer" use="required">
+                    <xsd:annotation>
+                        <xsd:documentation><![CDATA[ The member level. ]]></xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:element name="person" type="personType">
+        <xsd:annotation>
+            <xsd:documentation><![CDATA[ The person ]]]></xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="member" type="memberType">
+        <xsd:annotation>
+            <xsd:documentation><![CDATA[ The member ]]]></xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+
+</xsd:schema>

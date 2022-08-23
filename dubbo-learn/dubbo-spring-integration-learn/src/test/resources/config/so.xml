@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<shiporder orderid="123456" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://tech.meeleet.com/schema/so http://tech.meeleet.com/schema/so/so.xsd"
+           xmlns="http://tech.meeleet.com/schema/so">
+
+    <orderperson>mike</orderperson>
+    <shipto>
+        <name>jackson</name>
+        <address>xiasha district</address>
+        <city>hangzhou</city>
+        <country>china</country>
+    </shipto>
+    <item>
+        <title>product1</title>
+        <note>nothing1</note>
+        <quantity>1</quantity>
+        <price>10.83</price>
+    </item>
+    <item>
+        <title>product2</title>
+        <quantity>2</quantity>
+        <price>9</price>
+    </item>
+</shiporder>

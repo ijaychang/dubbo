@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            targetNamespace="http://tech.meeleet.com/schema/so"
+            elementFormDefault="qualified">
+
+    <xsd:simpleType name="orderIdType">
+        <xsd:restriction base="xsd:string">
+            <xsd:pattern value="[0-9]{6}"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="priceType">
+        <xsd:restriction base="xsd:decimal">
+            <xsd:fractionDigits value="2"/>
+            <xsd:minInclusive value="1"/>
+            <xsd:pattern value="\d+\.\d{2}"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="itemType">
+        <!-- xsd:all 表示元素可以无序 -->
+        <xsd:all>
+            <xsd:element name="title" type="xsd:string"/>
+            <xsd:element name="note" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="quantity" type="xsd:nonNegativeInteger"/>
+            <xsd:element name="price" type="priceType"/>
+        </xsd:all>
+    </xsd:complexType>
+
+    <xsd:complexType name="shiptoType">
+        <xsd:element name="name" type="xsd:string"/>
+        <xsd:element name="address" type="xsd:string"/>
+        <xsd:element name="city" type="xsd:string"/>
+        <xsd:element name="country" type="xsd:string"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="shiporderType">
+        <xsd:sequence>
+            <xsd:element name="orderperson" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="shipto" type="shiptoType" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="item" type="itemType" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+        <xsd:attribute name="orderid" type="orderIdType" use="required"/>
+    </xsd:complexType>
+
+    <xsd:element name="shiporder" type="shiporderType">
+        <xsd:annotation>
+            <xsd:documentation><![CDATA[ The shiporder ]]]></xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="name" type="xsd:string"/>
+    <xsd:element name="navn" substitutionGroup="name"/>
+
+</xsd:schema>

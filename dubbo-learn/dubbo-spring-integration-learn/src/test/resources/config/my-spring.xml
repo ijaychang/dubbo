@@ -3,7 +3,7 @@
        xmlns:my="http://tech.meeleet.com/schema/my"
        xmlns="http://www.springframework.org/schema/beans"
        xsi:schemaLocation=
-               "http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+               "http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
                 http://tech.meeleet.com/schema/my http://tech.meeleet.com/schema/my/my.xsd">
 
     <my:application name="exampleApplication" version="1.0.0"/>

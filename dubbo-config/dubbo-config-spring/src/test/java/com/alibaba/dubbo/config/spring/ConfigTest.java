@@ -100,11 +100,15 @@ public class ConfigTest {
         ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext(ConfigTest.class.getPackage().getName().replace('.', '/') + "/provider-nested-service.xml");
         ctx.start();
         try {
+            // serviceConfig.getProvider()是什么时候注入的？
             ServiceConfig<DemoService> serviceConfig = (ServiceConfig<DemoService>) ctx.getBean("serviceConfig");
             assertNotNull(serviceConfig.getProvider());
             assertEquals(2000, serviceConfig.getProvider().getTimeout().intValue());
 
             ServiceConfig<DemoService> serviceConfig2 = (ServiceConfig<DemoService>) ctx.getBean("serviceConfig2");
+            // serviceConfig2.getProvider()是什么时候注入的？
+            // 答案在DubboBeanDefinitionParser->parseNested方法的这段代码
+            // subDefinition.getPropertyValues().addPropertyValue(property, new RuntimeBeanReference(ref));
             assertNotNull(serviceConfig2.getProvider());
             assertEquals(1000, serviceConfig2.getProvider().getTimeout().intValue());
         } finally {

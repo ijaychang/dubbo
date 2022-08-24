@@ -3,6 +3,7 @@ package com.alibaba.dubbo.my.spring;
 import com.alibaba.dubbo.my.spring.config.ApplicationConfig;
 import com.alibaba.dubbo.my.spring.config.ServiceBeanConfig;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -13,6 +14,7 @@ import org.w3c.dom.NodeList;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 public class MyBeanDefinitionParser implements BeanDefinitionParser {
     private Class<?> beanClass;
@@ -33,13 +35,17 @@ public class MyBeanDefinitionParser implements BeanDefinitionParser {
         if (ApplicationConfig.class.equals(this.beanClass)) {
             String name = element.getAttribute("name");
             String version = element.getAttribute("version");
+            String id = UUID.randomUUID().toString();
             beanDefinition.getPropertyValues().add("name", name);
             beanDefinition.getPropertyValues().add("version", version);
+            parserContext.getRegistry().registerBeanDefinition(id,beanDefinition);
         }
         if (ServiceBeanConfig.class.equals(this.beanClass)) {
-            String reference = element.getAttribute("ref");
+            String ref = element.getAttribute("ref");
             String infClazzName = element.getAttribute("interface");
-            beanDefinition.getPropertyValues().add("reference", reference);
+            String id = UUID.randomUUID().toString();
+            beanDefinition.getPropertyValues().add("ref", ref);
+            beanDefinition.getPropertyValues().add("reference", new RuntimeBeanReference(ref));
             try {
                 beanDefinition.getPropertyValues().add("interfaceClass", Class.forName(infClazzName));
             } catch (ClassNotFoundException e) {
@@ -50,8 +56,9 @@ public class MyBeanDefinitionParser implements BeanDefinitionParser {
                 Node node = paramsNodeList.item(i);
                 System.out.println(node);
             }
+            parserContext.getRegistry().registerBeanDefinition(id,beanDefinition);
         }
-        parserContext.getRegistry().registerBeanDefinition("xyz", beanDefinition);
+
         return beanDefinition;
     }
 }

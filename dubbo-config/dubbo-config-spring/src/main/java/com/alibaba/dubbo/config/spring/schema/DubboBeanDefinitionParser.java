@@ -102,6 +102,8 @@ public class DubboBeanDefinitionParser implements BeanDefinitionParser {
             parserContext.getRegistry().registerBeanDefinition(id, beanDefinition);
             beanDefinition.getPropertyValues().addPropertyValue("id", id);
         }
+        // 到这里为止，以上代码主要工作是生成bean的id，设置beanClass，注册beanDefinition
+
         // 给其他bean定义中存在属性名为"protocol"且属性类型为ProtocolConfig的，且协议也一样的，那就重新赋值protocol定义
         if (ProtocolConfig.class.equals(beanClass)) {
             for (String name : parserContext.getRegistry().getBeanDefinitionNames()) {
@@ -120,7 +122,6 @@ public class DubboBeanDefinitionParser implements BeanDefinitionParser {
             String className = element.getAttribute("class");
             // 只有实现类全限定名不为空的时候，才会创建BeanDefinitionHolder
             // 如果类全限定名为空，那么会根据ref属性值，到bean定义注册池中查，查到了，就创建RuntimeBeanReference，见如下代码
-            // if ("ref".equals(property) && parserContext.getRegistry().containsBeanDefinition(value)){...}
             if (className != null && className.length() > 0) {
                 // 实现类的bean定义
                 RootBeanDefinition classDefinition = new RootBeanDefinition();
@@ -137,11 +138,12 @@ public class DubboBeanDefinitionParser implements BeanDefinitionParser {
                 // id+ "Impl" =》 com.alibaba.dubbo.config.spring.api.DemoServiceImpl
                 beanDefinition.getPropertyValues().addPropertyValue("ref", new BeanDefinitionHolder(classDefinition, id + "Impl"));
             }
-        // provider配置解析
+        // provider配置解析,provider节点下只能包含service节点
         } else if (ProviderConfig.class.equals(beanClass)) {
             parseNested(element, parserContext, ServiceBean.class, true, "service", "provider", id, beanDefinition);
         // consumer配置解析
         } else if (ConsumerConfig.class.equals(beanClass)) {
+            // consumer节点下只能包含reference节点
             parseNested(element, parserContext, ReferenceBean.class, false, "reference", "consumer", id, beanDefinition);
         }
         Set<String> props = new HashSet<String>();
@@ -165,6 +167,7 @@ public class DubboBeanDefinitionParser implements BeanDefinitionParser {
                     } catch (NoSuchMethodException e2) {
                     }
                 }
+                // 忽略getter为null,非public修饰,以及setter参数类型与getter返回参数类型不一致的情况
                 if (getter == null
                         || !Modifier.isPublic(getter.getModifiers())
                         || !type.equals(getter.getReturnType())) {
@@ -230,6 +233,7 @@ public class DubboBeanDefinitionParser implements BeanDefinitionParser {
                                 } else {
                                     if ("ref".equals(property) && parserContext.getRegistry().containsBeanDefinition(value)) {
                                         BeanDefinition refBean = parserContext.getRegistry().getBeanDefinition(value);
+                                        // 校验ref属性值所对应的refBean定义，必须是单例的
                                         if (!refBean.isSingleton()) {
                                             throw new IllegalStateException("The exported service ref " + value + " must be singleton! Please set the " + value + " bean scope to singleton, eg: <bean id=\"" + value + "\" scope=\"singleton\" ...>");
                                         }
@@ -312,7 +316,11 @@ public class DubboBeanDefinitionParser implements BeanDefinitionParser {
                         }
                         // 解析子节点,这里的node节点,节点名可能是dubbo:service或dubbo:reference
                         BeanDefinition subDefinition = parse((Element) node, parserContext, beanClass, required);
+                        // subDefinition有可能是ServiceBean类型或ReferenceBean类型的BeanDefinition，这里的ref即是ProviderConfig类型BeanDefinition的id
                         if (subDefinition != null && ref != null && ref.length() > 0) {
+                            // 以下代码就做到了将ServiceBean类型的provider属性设为ProviderConfig类型BeanDefinition的id
+                            // 主要做用就是给ServiceBean对象注入provider对象（dubbo:provider节点包裹dubbo:service节点）
+                            // 同理ConsumerConfig，ReferenceBean不再赘述
                             subDefinition.getPropertyValues().addPropertyValue(property, new RuntimeBeanReference(ref));
                         }
                     }

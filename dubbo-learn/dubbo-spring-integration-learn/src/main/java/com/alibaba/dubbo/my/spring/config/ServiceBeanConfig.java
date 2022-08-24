@@ -7,7 +7,9 @@ public class ServiceBeanConfig implements Serializable {
     /**
      * 引用bean id
      */
-    private String reference;
+    private String ref;
+
+    private Object reference;
     /**
      * 接口全限定名
      */
@@ -17,12 +19,12 @@ public class ServiceBeanConfig implements Serializable {
 
     private Map<String, String> parameters;
 
-    public String getReference() {
-        return reference;
+    public String getRef() {
+        return ref;
     }
 
-    public void setReference(String reference) {
-        this.reference = reference;
+    public void setRef(String ref) {
+        this.ref = ref;
     }
 
     public String getInterfaceClassName() {
@@ -49,9 +51,18 @@ public class ServiceBeanConfig implements Serializable {
         this.parameters = parameters;
     }
 
+    public Object getReference() {
+        return reference;
+    }
+
+    public void setReference(Object reference) {
+        this.reference = reference;
+    }
+
     @Override
     public String toString() {
         return "ServiceBeanConfig{" +
+                "ref='" + ref + '\'' +
                 "reference='" + reference + '\'' +
                 ", interfaceClassName='" + interfaceClassName + '\'' +
                 ", interfaceClass=" + interfaceClass +

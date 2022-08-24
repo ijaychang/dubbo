@@ -71,31 +71,38 @@ public class DubboBeanDefinitionParser implements BeanDefinitionParser {
         beanDefinition.setBeanClass(beanClass);
         beanDefinition.setLazyInit(false);
         String id = element.getAttribute("id");
+        // id 为空，且required为true，则说明需要生成id
         if ((id == null || id.length() == 0) && required) {
             String generatedBeanName = element.getAttribute("name");
             if (generatedBeanName == null || generatedBeanName.length() == 0) {
+                // name属性值为空且beanClass是ProtocolConfig类型，那么generatedBeanName赋值为dubbo
                 if (ProtocolConfig.class.equals(beanClass)) {
                     generatedBeanName = "dubbo";
                 } else {
                     generatedBeanName = element.getAttribute("interface");
                 }
             }
+            // generatedBeanName依然为空则取beanClass.getName()赋值给generatedBeanName
             if (generatedBeanName == null || generatedBeanName.length() == 0) {
                 generatedBeanName = beanClass.getName();
             }
             id = generatedBeanName;
             int counter = 2;
+            // 若已存在相应的id,则id赋值为${generatedBeanName}2
             while (parserContext.getRegistry().containsBeanDefinition(id)) {
                 id = generatedBeanName + (counter++);
             }
         }
         if (id != null && id.length() > 0) {
+            // 若发现id已存在，则抛出异常
             if (parserContext.getRegistry().containsBeanDefinition(id)) {
                 throw new IllegalStateException("Duplicate spring bean id " + id);
             }
+            // 注册beanDefinition
             parserContext.getRegistry().registerBeanDefinition(id, beanDefinition);
             beanDefinition.getPropertyValues().addPropertyValue("id", id);
         }
+        // 给其他bean定义中存在属性名为"protocol"且属性类型为ProtocolConfig的，且协议也一样的，那就重新赋值protocol定义
         if (ProtocolConfig.class.equals(beanClass)) {
             for (String name : parserContext.getRegistry().getBeanDefinitionNames()) {
                 BeanDefinition definition = parserContext.getRegistry().getBeanDefinition(name);
@@ -107,17 +114,33 @@ public class DubboBeanDefinitionParser implements BeanDefinitionParser {
                     }
                 }
             }
+        // 为什么只有ServiceBean判断分支，没有ReferenceBean判断分支?
         } else if (ServiceBean.class.equals(beanClass)) {
+            // 获取实现类全限定名
             String className = element.getAttribute("class");
+            // 只有实现类全限定名不为空的时候，才会创建BeanDefinitionHolder
+            // 如果类全限定名为空，那么会根据ref属性值，到bean定义注册池中查，查到了，就创建RuntimeBeanReference，见如下代码
+            // if ("ref".equals(property) && parserContext.getRegistry().containsBeanDefinition(value)){...}
             if (className != null && className.length() > 0) {
+                // 实现类的bean定义
                 RootBeanDefinition classDefinition = new RootBeanDefinition();
                 classDefinition.setBeanClass(ReflectUtils.forName(className));
                 classDefinition.setLazyInit(false);
                 parseProperties(element.getChildNodes(), classDefinition);
+                // 这里的beanDefinition是指ServiceBean的beanDefinition，RuntimeBeanReference和BeanDefinitionHolder其区别？
+                /**
+                    <dubbo:service interface="com.alibaba.dubbo.config.spring.api.DemoService"
+                                class="com.alibaba.dubbo.config.spring.impl.DemoServiceImpl">
+                        <property name="prefix" value="welcome:"/>
+                    </dubbo:service>
+                 */
+                // id+ "Impl" =》 com.alibaba.dubbo.config.spring.api.DemoServiceImpl
                 beanDefinition.getPropertyValues().addPropertyValue("ref", new BeanDefinitionHolder(classDefinition, id + "Impl"));
             }
+        // provider配置解析
         } else if (ProviderConfig.class.equals(beanClass)) {
             parseNested(element, parserContext, ServiceBean.class, true, "service", "provider", id, beanDefinition);
+        // consumer配置解析
         } else if (ConsumerConfig.class.equals(beanClass)) {
             parseNested(element, parserContext, ReferenceBean.class, false, "reference", "consumer", id, beanDefinition);
         }
@@ -125,9 +148,11 @@ public class DubboBeanDefinitionParser implements BeanDefinitionParser {
         ManagedMap parameters = null;
         for (Method setter : beanClass.getMethods()) {
             String name = setter.getName();
+            // 存在public的setXxx方法
             if (name.length() > 3 && name.startsWith("set")
                     && Modifier.isPublic(setter.getModifiers())
                     && setter.getParameterTypes().length == 1) {
+                // 得到set方法的参数类型
                 Class<?> type = setter.getParameterTypes()[0];
                 String property = StringUtils.camelToSplitName(name.substring(3, 4).toLowerCase() + name.substring(4), "-");
                 props.add(property);
@@ -261,6 +286,14 @@ public class DubboBeanDefinitionParser implements BeanDefinitionParser {
         beanDefinition.getPropertyValues().addPropertyValue(property, list);
     }
 
+    /**
+     *
+     if (ProviderConfig.class.equals(beanClass)) {
+        parseNested(element, parserContext, ServiceBean.class, true, "service", "provider", id, beanDefinition);
+     } else if (ConsumerConfig.class.equals(beanClass)) {
+        parseNested(element, parserContext, ReferenceBean.class, false, "reference", "consumer", id, beanDefinition);
+     }
+     */
     private static void parseNested(Element element, ParserContext parserContext, Class<?> beanClass, boolean required, String tag, String property, String ref, BeanDefinition beanDefinition) {
         NodeList nodeList = element.getChildNodes();
         if (nodeList != null && nodeList.getLength() > 0) {
@@ -277,6 +310,7 @@ public class DubboBeanDefinitionParser implements BeanDefinitionParser {
                                 beanDefinition.getPropertyValues().addPropertyValue("default", "false");
                             }
                         }
+                        // 解析子节点,这里的node节点,节点名可能是dubbo:service或dubbo:reference
                         BeanDefinition subDefinition = parse((Element) node, parserContext, beanClass, required);
                         if (subDefinition != null && ref != null && ref.length() > 0) {
                             subDefinition.getPropertyValues().addPropertyValue(property, new RuntimeBeanReference(ref));

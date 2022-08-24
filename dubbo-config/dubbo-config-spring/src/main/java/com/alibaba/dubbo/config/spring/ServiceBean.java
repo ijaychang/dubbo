@@ -150,6 +150,7 @@ public class ServiceBean<T> extends ServiceConfig<T> implements InitializingBean
                 } else {
                     ProviderConfig providerConfig = null;
                     for (ProviderConfig config : providerConfigMap.values()) {
+                        // dubbo:provider 不设置default，就当作是默认的了
                         if (config.isDefault() == null || config.isDefault().booleanValue()) {
                             if (providerConfig != null) {
                                 throw new IllegalStateException("Duplicate provider configs: " + providerConfig + " and " + config);

@@ -101,13 +101,14 @@ public class ConfigTest {
         ctx.start();
         try {
             // serviceConfig.getProvider()是什么时候注入的？
+            // 答案在com.alibaba.dubbo.config.spring.ServiceBean.afterPropertiesSet
             ServiceConfig<DemoService> serviceConfig = (ServiceConfig<DemoService>) ctx.getBean("serviceConfig");
             assertNotNull(serviceConfig.getProvider());
             assertEquals(2000, serviceConfig.getProvider().getTimeout().intValue());
 
             ServiceConfig<DemoService> serviceConfig2 = (ServiceConfig<DemoService>) ctx.getBean("serviceConfig2");
             // serviceConfig2.getProvider()是什么时候注入的？
-            // 答案在DubboBeanDefinitionParser->parseNested方法的这段代码
+            // 答案在DubboBeanDefinitionParser->parseNested方法的以下这段代码
             // subDefinition.getPropertyValues().addPropertyValue(property, new RuntimeBeanReference(ref));
             assertNotNull(serviceConfig2.getProvider());
             assertEquals(1000, serviceConfig2.getProvider().getTimeout().intValue());

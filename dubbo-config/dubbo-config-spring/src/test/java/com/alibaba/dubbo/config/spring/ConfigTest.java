@@ -44,6 +44,7 @@ import junit.framework.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import java.util.Collection;
@@ -62,6 +63,21 @@ public class ConfigTest {
     private static void unexportService(ServiceConfig<?> config) {
         if (config != null) {
             config.unexport();
+        }
+    }
+
+    @Test
+    public void testServiceBeanClass() {
+        ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext(ConfigTest.class.getPackage().getName().replace('.', '/') + "/service-class.xml");
+
+        ctx.start();
+        try {
+            ServiceBean demoServiceServiceBean = ctx.getBean(ServiceBean.class);
+            String hello = ((DemoService) demoServiceServiceBean.getRef()).sayName("hello");
+            assertEquals("welcome:hello", hello);
+        } finally {
+            ctx.stop();
+            ctx.close();
         }
     }
 

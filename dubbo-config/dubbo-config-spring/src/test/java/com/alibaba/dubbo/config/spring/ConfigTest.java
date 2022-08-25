@@ -44,7 +44,6 @@ import junit.framework.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import java.util.Collection;
@@ -75,6 +74,15 @@ public class ConfigTest {
             ServiceBean demoServiceServiceBean = ctx.getBean(ServiceBean.class);
             String hello = ((DemoService) demoServiceServiceBean.getRef()).sayName("hello");
             assertEquals("welcome:hello", hello);
+
+            // spring容器中仅存在ServiceBean实例，并没有DemoService实例
+            // 什么情况下DemoService实例会在spring容器中？
+            try {
+                DemoService demoService = ctx.getBean(DemoService.class);
+            }catch (Exception e) {
+                assertTrue(e.getMessage().contains("No qualifying bean of type 'com.alibaba.dubbo.config.spring.api.DemoService' available"));
+            }
+
         } finally {
             ctx.stop();
             ctx.close();

@@ -42,9 +42,12 @@ public abstract class AbstractServiceConfig extends AbstractInterfaceConfig {
     protected Boolean deprecated;
 
     // delay service exporting
+    // 延迟多少时间发布服务[单位毫秒]
     protected Integer delay;
 
     // whether to export the service
+    // 注意与com.alibaba.dubbo.config.ServiceConfig.exported的意义要区别开来。这里指要不要发布服务
+    /** @see com.alibaba.dubbo.config.ServiceConfig#exported*/
     protected Boolean export;
 
     // weight

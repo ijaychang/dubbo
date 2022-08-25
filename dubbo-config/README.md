@@ -22,25 +22,30 @@
                                DefaultBeanDefinitionDocumentReader.parseDefaultElement() [spring默认的名空间，即beans]
                                delegate.parseCustomElement(ele) [自定义的名空间]
 ```
-XmlBeanDefinitionReader.getNamespaceHandlerResolver() 得到Xml命名空间名与NamespaceHandler的映射Map
+XmlBeanDefinitionReader.getNamespaceHandlerResolver() 得到Xml命名空间Url与NamespaceHandler实现类的映射Map
 DefaultBeanDefinitionDocumentReader.doRegisterBeanDefinitions() 完成解析并生成BeanDefinition
+
+
+AbstractApplicationContext.finishRefresh()发布ContextRefreshedEvent事件
 
 # 服务发布
 ## 涉及到的关键类 
 ServiceBean,ProxyFactory,AbstractProxyInvoker
 ## 服务发布触发事件
-触发的事件是ContextRefreshedEvent
-缘起在com.alibaba.dubbo.config.spring.ServiceBean.onApplicationEvent()
+触发的事件是AbstractApplicationContext.finishRefresh()发布的ContextRefreshedEvent事件
+监听上下文刷新完成事件是在com.alibaba.dubbo.config.spring.ServiceBean.onApplicationEvent(ContextRefreshedEvent)
 ## 服务发布流程
 服务发布
+```
 ServiceBean.onApplicationEvent()
     ->ServiceConfig.export()
-        ->doExport()
-            ->doExportUrls()
-                ->loadRegistries()
-                  doExportUrlsFor1Protocol() //组装url
-                    ->  exportLocal(url) //暴露本地服务
-                        Exporter<?> exporter = protocol.export(proxyFactory.getInvoker(ref, (Class) interfaceClass, local));
+        ->ServiceConfig.doExport()
+            ->ServiceConfig.doExportUrls()
+                ->ServiceConfig.doExportUrlsFor1Protocol()
+                    ->  ServiceConfig.exportLocal(url) //暴露本地服务
+                    Exporter<?> exporter = protocol.export(proxyFactory.getInvoker(ref, (Class) interfaceClass, local));
+
+```
                  INFO config.AbstractConfig:  [DUBBO] Export dubbo service com.alibaba.dubbo.config.spring.api.DemoService to local registry, dubbo version: 2.0.0, current host: 172.18.14.161
                         
                         Invoker<?> invoker = proxyFactory.getInvoker(ref, (Class) interfaceClass, url);

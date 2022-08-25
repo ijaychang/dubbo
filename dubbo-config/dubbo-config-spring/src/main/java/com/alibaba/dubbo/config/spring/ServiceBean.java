@@ -114,7 +114,7 @@ public class ServiceBean<T> extends ServiceConfig<T> implements InitializingBean
     }
 
     /**
-     * 上下文刷新事件，触发服务发布(本地暴露发布，远程暴露发布)
+     * AbstractApplicationContext.finishRefresh()发布ContextRefreshedEvent 上下文刷新事件，触发服务发布(本地发布，远程发布)
      * @param event
      */
     public void onApplicationEvent(ContextRefreshedEvent event) {

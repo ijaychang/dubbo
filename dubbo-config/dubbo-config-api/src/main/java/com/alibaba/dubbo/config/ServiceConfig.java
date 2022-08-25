@@ -78,6 +78,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
 
     private static final Map<String, Integer> RANDOM_PORT_MAP = new HashMap<String, Integer>();
 
+    // 延迟发布用的线程池，线程池里只有1个线程，因为1个完全够用了
     private static final ScheduledExecutorService delayExportExecutor = Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory("DubboServiceDelayExporter", true));
     private final List<URL> urls = new ArrayList<URL>();
     private final List<Exporter<?>> exporters = new ArrayList<Exporter<?>>();
@@ -91,6 +92,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
     // method configuration
     private List<MethodConfig> methods;
     private ProviderConfig provider;
+    // exported 指有没有发布好
     private transient volatile boolean exported;
 
     private transient volatile boolean unexported;
@@ -194,6 +196,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
     }
 
     public synchronized void export() {
+        // 检查export，看是不是要发布服务，不用发布就立即返回[大多数情况肯定要发的么]
         if (provider != null) {
             if (export == null) {
                 export = provider.getExport();
@@ -206,6 +209,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
             return;
         }
 
+        // 延迟发布
         if (delay != null && delay > 0) {
             delayExportExecutor.schedule(new Runnable() {
                 public void run() {
@@ -218,17 +222,20 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
     }
 
     protected synchronized void doExport() {
+        // 服务都已经撤下来了，就用不着发布了，直接报错
         if (unexported) {
             throw new IllegalStateException("Already unexported!");
         }
+        // 服务已经发布了[准确地说已经发布了或发布中]，则立即返回
         if (exported) {
             return;
         }
         exported = true;
-        // interfaceName不能为空否则报错
+        // interfaceName不能为空否则报错[接口全限定名怎么能漏掉，这些应该都是liangfei所说的防痴呆设计 https://www.iteye.com/blog/javatar-804187]
         if (interfaceName == null || interfaceName.length() == 0) {
             throw new IllegalStateException("<dubbo:service interface=\"\" /> interface not allow null!");
         }
+        // 检查下，不会吧ProviderConfig对象都没有，忘记配置了吧，行吧给你搞一个算了
         checkDefault();
         if (provider != null) {
             if (application == null) {
@@ -276,7 +283,10 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
             } catch (ClassNotFoundException e) {
                 throw new IllegalStateException(e.getMessage(), e);
             }
+            // 检查interfaceClass是否为null,以及是不是接口，检查methods这些个method方法名有没有配置，跟接口里的方法有没有匹配
             checkInterfaceAndMethods(interfaceClass, methods);
+            // ref不能为null，且必须实现interfaceClass
+            // 得到ref有两种方式: 1.在<dubbo:service> 配置ref属性，属性值为spring bean的id   2. <dubbo:service> 配置class属性，由DubboBeanDefinitionParser帮你创建一个实例
             checkRef();
             generic = Boolean.FALSE.toString();
         }

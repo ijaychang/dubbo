@@ -105,6 +105,7 @@ public abstract class AbstractConfig implements Serializable {
         if (config == null) {
             return;
         }
+        // 举例:如果这里config是ProviderConfig实例，那么prefix就是dubbo.provider.
         String prefix = "dubbo." + getTagName(config.getClass()) + ".";
         Method[] methods = config.getClass().getMethods();
         for (Method method : methods) {

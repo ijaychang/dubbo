@@ -97,6 +97,10 @@ public abstract class AbstractConfig implements Serializable {
         return value;
     }
 
+    /**
+     * 该方法用于完善某个配置对象的属性值(根据Jvm系统属性，或dubbo.properties里的配置)
+     * @param config
+     */
     protected static void appendProperties(AbstractConfig config) {
         if (config == null) {
             return;
@@ -114,6 +118,7 @@ public abstract class AbstractConfig implements Serializable {
                     if (config.getId() != null && config.getId().length() > 0) {
                         String pn = prefix + config.getId() + "." + property;
                         value = System.getProperty(pn);
+                        // 取到对应的系统属性不为空，则优先使用系统属性
                         if (!StringUtils.isBlank(value)) {
                             logger.info("Use System Property " + pn + " to config dubbo");
                         }

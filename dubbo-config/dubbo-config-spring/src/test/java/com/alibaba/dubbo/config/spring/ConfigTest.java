@@ -70,7 +70,10 @@ public class ConfigTest {
         ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext(ConfigTest.class.getPackage().getName().replace('.', '/') + "/spring-extension-inject.xml");
         ctx.start();
         try {
-            MockFilter filter = (MockFilter) ExtensionLoader.getExtensionLoader(Filter.class).getExtension("mymock");
+            // com.alibaba.dubbo.config.spring.ServiceBean#setApplicationContext或com.alibaba.dubbo.config.spring.ReferenceBean#setApplicationContext方法里通过调用SpringExtensionFactory的addApplicationContext方法
+            // 给SpringExtensionFactory设置spring上下文，因为ServiceBean,ReferenceBean都实现了ApplicationContextAware接口
+            MockFilter filter = (MockFilter) ExtensionLoader.getExtensionLoader(Filter.class)
+                    .getExtension("mymock");
             assertNotNull(filter.getMockDao());
             assertNotNull(filter.getProtocol());
             assertNotNull(filter.getLoadBalance());

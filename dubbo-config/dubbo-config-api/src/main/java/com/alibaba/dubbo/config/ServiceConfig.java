@@ -225,6 +225,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
             return;
         }
         exported = true;
+        // interfaceName不能为空否则报错
         if (interfaceName == null || interfaceName.length() == 0) {
             throw new IllegalStateException("<dubbo:service interface=\"\" /> interface not allow null!");
         }
@@ -262,6 +263,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
                 monitor = application.getMonitor();
             }
         }
+        // ref是泛化调用服务接口，则interfaceClass赋值为GenericService.class，generic调用标志为true
         if (ref instanceof GenericService) {
             interfaceClass = GenericService.class;
             if (StringUtils.isEmpty(generic)) {
@@ -366,6 +368,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         }
 
         Map<String, String> map = new HashMap<String, String>();
+        // 毫无疑问ServiceConfig的side一定时provider
         map.put(Constants.SIDE_KEY, Constants.PROVIDER_SIDE);
         map.put(Constants.DUBBO_VERSION_KEY, Version.getVersion());
         map.put(Constants.TIMESTAMP_KEY, String.valueOf(System.currentTimeMillis()));
@@ -457,6 +460,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
                 map.put("token", token);
             }
         }
+        // 协议名为injvm的话，就无需注册了
         if ("injvm".equals(protocolConfig.getName())) {
             protocolConfig.setRegister(false);
             map.put("notify", "false");
@@ -469,6 +473,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
 
         String host = this.findConfigedHosts(protocolConfig, registryURLs, map);
         Integer port = this.findConfigedPorts(protocolConfig, name, map);
+        // 以上创建的map，给map添加各种键值，都是为了生成url，即所谓dubbo的控制总线
         URL url = new URL(name, host, port, (contextPath == null || contextPath.length() == 0 ? "" : contextPath + "/") + path, map);
 
         if (ExtensionLoader.getExtensionLoader(ConfiguratorFactory.class)
@@ -507,6 +512,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
                         exporters.add(exporter);
                     }
                 } else {
+                    // 对实现类实例进行包装
                     Invoker<?> invoker = proxyFactory.getInvoker(ref, (Class) interfaceClass, url);
                     DelegateProviderMetaDataInvoker wrapperInvoker = new DelegateProviderMetaDataInvoker(invoker, this);
 
@@ -525,8 +531,8 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
                     .setProtocol(Constants.LOCAL_PROTOCOL)
                     .setHost(LOCALHOST)
                     .setPort(0);
-            Exporter<?> exporter = protocol.export(
-                    proxyFactory.getInvoker(ref, (Class) interfaceClass, local));
+            Invoker invokerProxy = proxyFactory.getInvoker(ref, (Class) interfaceClass, local);
+            Exporter<?> exporter = protocol.export(invokerProxy);
             exporters.add(exporter);
             logger.info("Export dubbo service " + interfaceClass.getName() + " to local registry");
         }
@@ -700,6 +706,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         }
         for (ProtocolConfig protocolConfig : protocols) {
             if (StringUtils.isEmpty(protocolConfig.getName())) {
+                // 默认协议名设置为dubbo
                 protocolConfig.setName("dubbo");
             }
             appendProperties(protocolConfig);

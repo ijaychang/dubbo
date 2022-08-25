@@ -76,6 +76,7 @@ public class ServiceBean<T> extends ServiceConfig<T> implements InitializingBean
 
     public void setApplicationContext(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
+        // 使SpringExtensionFactory持有applicationContext对象
         SpringExtensionFactory.addApplicationContext(applicationContext);
         if (applicationContext != null) {
             SPRING_CONTEXT = applicationContext;
@@ -112,7 +113,13 @@ public class ServiceBean<T> extends ServiceConfig<T> implements InitializingBean
         return service;
     }
 
+    /**
+     * 上下文刷新事件，触发服务发布(本地暴露发布，远程暴露发布)
+     * @param event
+     */
     public void onApplicationEvent(ContextRefreshedEvent event) {
+        // 事件消费是在afterPropertiesSet()后执行的
+        System.out.println("ServiceBean.onApplicationEvent");
         if (isDelay() && !isExported() && !isUnexported()) {
             if (logger.isInfoEnabled()) {
                 logger.info("The service ready on spring started. service: " + getInterface());
@@ -132,6 +139,7 @@ public class ServiceBean<T> extends ServiceConfig<T> implements InitializingBean
 
     @SuppressWarnings({"unchecked", "deprecation"})
     public void afterPropertiesSet() throws Exception {
+        System.out.println("ServiceBean.afterPropertiesSet");
         if (getProvider() == null) {
             Map<String, ProviderConfig> providerConfigMap = applicationContext == null ? null : BeanFactoryUtils.beansOfTypeIncludingAncestors(applicationContext, ProviderConfig.class, false, false);
             if (providerConfigMap != null && providerConfigMap.size() > 0) {

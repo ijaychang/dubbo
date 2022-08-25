@@ -8,13 +8,13 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class MyBeanDefinitionParser implements BeanDefinitionParser {
     private Class<?> beanClass;
@@ -38,7 +38,7 @@ public class MyBeanDefinitionParser implements BeanDefinitionParser {
             String id = UUID.randomUUID().toString();
             beanDefinition.getPropertyValues().add("name", name);
             beanDefinition.getPropertyValues().add("version", version);
-            parserContext.getRegistry().registerBeanDefinition(id,beanDefinition);
+            parserContext.getRegistry().registerBeanDefinition(id, beanDefinition);
         }
         if (ServiceBeanConfig.class.equals(this.beanClass)) {
             String ref = element.getAttribute("ref");
@@ -52,11 +52,20 @@ public class MyBeanDefinitionParser implements BeanDefinitionParser {
                 e.printStackTrace();
             }
             NodeList paramsNodeList = element.getChildNodes();
+            Map<String,String> parameters = new HashMap<String, String>();
             for (int i = 0; i < paramsNodeList.getLength(); i++) {
                 Node node = paramsNodeList.item(i);
                 System.out.println(node);
+                if (node instanceof Element) {
+                    Element parameter = (Element) node;
+                    NamedNodeMap namedNodeMap = parameter.getAttributes();
+                    String key = namedNodeMap.getNamedItem("key").getNodeValue();
+                    String value = namedNodeMap.getNamedItem("value").getNodeValue();
+                    parameters.put(key,value);
+                }
             }
-            parserContext.getRegistry().registerBeanDefinition(id,beanDefinition);
+            beanDefinition.getPropertyValues().add("parameters",parameters);
+            parserContext.getRegistry().registerBeanDefinition(id, beanDefinition);
         }
 
         return beanDefinition;

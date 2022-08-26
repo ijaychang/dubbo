@@ -64,12 +64,22 @@ ServiceBean.onApplicationEvent()
                       ExtensionLoader.getExtensionLoader(Protocol.class).getAdaptiveExtension().export(wrapperInvoker)
                         ->Protocol$Adaptive.export(wrapperInvoker)
                           ->QosProtocolWrapper.export(wrapperInvoker)
-                            ->ProtocolListenerWrapper.export(wrapperInvoker)
-                              ->ProtocolFilterWrapper.export(wrapperInvoker)
-                                ->ProtocolFilterWrapper.buildInvokerChain() //构建调用的过滤器链
-                                  -> ExtensionLoader.getExtensionLoader(Filter.class).getActivateExtension(invoker.getUrl(), "service.filter", "provider")
-                                     
-
+                              ->ProtocolFilterWrapper.export(wrapperInvoker)//ProtocolFilterWrapper作用就是给Invoker包一堆Filter
+                                ->ProtocolFilterWrapper.buildInvokerChain() //构建Invoker调用过滤器链
+                                  ->ExtensionLoader.getExtensionLoader(Filter.class).getActivateExtension(invoker.getUrl(), "service.filter", "provider")
+                                ->ProtocolListenerWrapper.export(wrapperInvoker)
+                                  -> protocol.export(invoker)
+                                    ->DubboProtocol.export(invoker)
+                                      ->DubboProtocol.openServer(url)
+                                        ->DubboProtocol.createServer(url)
+                                          ->Exchangers.bind(url, requestHandler)
+                                            ->ExtensionLoader.getExtensionLoader(Exchanger.class).getExtension(type)
+                                              ->Transporters.bind(url, new DecodeHandler(new HeaderExchangeHandler(handler)))
+                                                ->ExtensionLoader.getExtensionLoader(Transporter.class).getAdaptiveExtension()
+                                                  ->NettyTransporter.bind()
+                                                    ->new NettyServer(url, listener)
+                                                       ->new AbstractServer
+                                                          ->NettyServer.doOpen()
 
 ```
 

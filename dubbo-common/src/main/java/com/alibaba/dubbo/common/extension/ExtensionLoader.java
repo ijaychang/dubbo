@@ -213,6 +213,7 @@ public class ExtensionLoader<T> {
             }
             Collections.sort(exts, ActivateComparator.COMPARATOR);
         }
+        // DUBBO-396 Spring配置时，filter属性配置上default值时出异常[217-235]
         List<T> usrs = new ArrayList<T>();
         for (int i = 0; i < names.size(); i++) {
             String name = names.get(i);

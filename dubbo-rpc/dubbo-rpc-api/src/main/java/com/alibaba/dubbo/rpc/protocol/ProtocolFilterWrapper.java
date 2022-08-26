@@ -43,6 +43,7 @@ public class ProtocolFilterWrapper implements Protocol {
         this.protocol = protocol;
     }
 
+
     private static <T> Invoker<T> buildInvokerChain(final Invoker<T> invoker, String key, String group) {
         Invoker<T> last = invoker;
         List<Filter> filters = ExtensionLoader.getExtensionLoader(Filter.class).getActivateExtension(invoker.getUrl(), key, group);
@@ -64,6 +65,7 @@ public class ProtocolFilterWrapper implements Protocol {
                         return invoker.isAvailable();
                     }
 
+                    // 这里关键就是Filter的invoke实现，最后一句必须是return invoker.invoke(invocation);
                     public Result invoke(Invocation invocation) throws RpcException {
                         return filter.invoke(next, invocation);
                     }

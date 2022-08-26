@@ -1,1 +1,2 @@
+# 因为没有key，所以默认key就是activateext1impl1
 com.alibaba.dubbo.common.extensionloader.activate.impl.ActivateExt1Impl1

@@ -15,11 +15,15 @@
  * limitations under the License.
  */
 
-package com.alibaba.dubbo.common.extensionloader.activate;
+package com.alibaba.dubbo.common.extensionloader.activate.impl;
 
-import com.alibaba.dubbo.common.extension.SPI;
+import com.alibaba.dubbo.common.extension.Activate;
+import com.alibaba.dubbo.common.extensionloader.activate.ActivateExt1;
 
-@SPI("impl1")
-public interface ActivateExt1 {
-    String echo(String msg);
+@Activate
+public class NoGroupActivateExtImpl implements ActivateExt1 {
+
+    public String echo(String msg) {
+        return msg;
+    }
 }

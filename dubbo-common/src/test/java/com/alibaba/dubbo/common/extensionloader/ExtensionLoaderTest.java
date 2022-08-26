@@ -372,11 +372,21 @@ public class ExtensionLoaderTest {
         url = url.addParameter(Constants.GROUP_KEY, "value");
         url = url.addParameter("value", "value");
         list = ExtensionLoader.getExtensionLoader(ActivateExt1.class)
+                // ValueActivateExtImpl的注解@Activate(value = {"value"}, group = {"value"})
                 .getActivateExtension(url, new String[]{}, "value");
         Assert.assertEquals(1, list.size());
         Assert.assertTrue(list.get(0).getClass() == ValueActivateExtImpl.class);
 
-        // test order
+        // test value[url doesn't have value parameter]
+        url = url.removeParameter(Constants.GROUP_KEY);
+        url = url.addParameter(Constants.GROUP_KEY, "value");
+        url = url.removeParameter("value");
+        list = ExtensionLoader.getExtensionLoader(ActivateExt1.class)
+                // ValueActivateExtImpl的注解@Activate(value = {"value"}, group = {"value"})
+                .getActivateExtension(url, new String[]{}, "value");
+        Assert.assertEquals(0, list.size());
+
+        // test order case01
         url = URL.valueOf("test://localhost/test");
         url = url.addParameter(Constants.GROUP_KEY, "order");
         list = ExtensionLoader.getExtensionLoader(ActivateExt1.class)
@@ -384,6 +394,35 @@ public class ExtensionLoaderTest {
         Assert.assertEquals(2, list.size());
         Assert.assertTrue(list.get(0).getClass() == OrderActivateExtImpl1.class);
         Assert.assertTrue(list.get(1).getClass() == OrderActivateExtImpl2.class);
+
+
+        // test order case02
+        url = URL.valueOf("test://localhost/test");
+        url = url.addParameter(Constants.GROUP_KEY, "order");
+        list = ExtensionLoader.getExtensionLoader(ActivateExt1.class)
+                .getActivateExtension(url, new String[]{"order2"}, "order");
+        Assert.assertEquals(2, list.size());
+        Assert.assertTrue(list.get(0).getClass() == OrderActivateExtImpl1.class);
+        Assert.assertTrue(list.get(1).getClass() == OrderActivateExtImpl2.class);
+
+
+        // test order case03
+        url = URL.valueOf("test://localhost/test");
+        url = url.addParameter(Constants.GROUP_KEY, "order");
+        list = ExtensionLoader.getExtensionLoader(ActivateExt1.class)
+                // -order1表示剔除query name= "order1"的扩展实现
+                .getActivateExtension(url, new String[]{"-order1"}, "order");
+        Assert.assertEquals(1, list.size());
+        Assert.assertTrue(list.get(0).getClass() == OrderActivateExtImpl2.class);
+
+        // test order case04
+        url = URL.valueOf("test://localhost/test");
+        url = url.addParameter(Constants.GROUP_KEY, "order");
+        list = ExtensionLoader.getExtensionLoader(ActivateExt1.class)
+                // -order2表示剔除query name= "order2"的扩展实现
+                .getActivateExtension(url, new String[]{"-order2"}, "order");
+        Assert.assertEquals(1, list.size());
+        Assert.assertTrue(list.get(0).getClass() == OrderActivateExtImpl1.class);
     }
 
     @Test

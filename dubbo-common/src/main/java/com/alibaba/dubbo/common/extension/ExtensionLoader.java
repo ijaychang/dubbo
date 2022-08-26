@@ -182,7 +182,7 @@ public class ExtensionLoader<T> {
 
     /**
      * Get activate extensions.
-     *
+     * 获得符合values[就是key，找到具体key指定名称的扩展],group[举例：如果type是Filter，那么group就是provider/consumer]条件的扩展
      * @param url    url
      * @param values extension point names
      * @param group  group
@@ -199,12 +199,13 @@ public class ExtensionLoader<T> {
             for (Map.Entry<String, Activate> entry : cachedActivates.entrySet()) {
                 String name = entry.getKey();
                 Activate activate = entry.getValue();
-                // group名称匹配
+                // group名称匹配，如果activate注解没有配group，那就不匹配
                 if (isMatchGroup(group, activate.group())) {
                     // 根据query name获取扩展对象
                     T ext = getExtension(name);
                     if (!names.contains(name)
                             && !names.contains(Constants.REMOVE_VALUE_PREFIX + name)
+                            // isActive检查url参数是否与activate.value()匹配
                             && isActive(activate, url)) {
                         exts.add(ext);
                     }
@@ -250,6 +251,7 @@ public class ExtensionLoader<T> {
 
     private boolean isActive(Activate activate, URL url) {
         String[] keys = activate.value();
+        // activate注解value()为空，那就不用校验url参数了
         if (keys == null || keys.length == 0) {
             return true;
         }

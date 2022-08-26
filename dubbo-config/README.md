@@ -22,6 +22,8 @@
                                DefaultBeanDefinitionDocumentReader.parseDefaultElement() [spring默认的名空间，即beans]
                                delegate.parseCustomElement(ele) [自定义的名空间]
 ```
+
+
 XmlBeanDefinitionReader.getNamespaceHandlerResolver() 得到Xml命名空间Url与NamespaceHandler实现类的映射Map
 DefaultBeanDefinitionDocumentReader.doRegisterBeanDefinitions() 完成解析并生成BeanDefinition
 
@@ -35,23 +37,51 @@ ServiceBean,ProxyFactory,AbstractProxyInvoker
 触发的事件是AbstractApplicationContext.finishRefresh()发布的ContextRefreshedEvent事件
 监听上下文刷新完成事件是在com.alibaba.dubbo.config.spring.ServiceBean.onApplicationEvent(ContextRefreshedEvent)
 ## 服务发布流程
-服务发布
+
+ServiceConfig有两个protocol,proxyFactor字段
+    private static final Protocol protocol = ExtensionLoader.getExtensionLoader(Protocol.class).getAdaptiveExtension();
+    private static final ProxyFactory proxyFactory = ExtensionLoader.getExtensionLoader(ProxyFactory.class).getAdaptiveExtension();
+
+Invoker封装了服务实现类实例[ref]
+
+
 ```
 ServiceBean.onApplicationEvent()
     ->ServiceConfig.export()
         ->ServiceConfig.doExport()
             ->ServiceConfig.doExportUrls()
                 ->ServiceConfig.doExportUrlsFor1Protocol()
-                    ->  ServiceConfig.exportLocal(url) //暴露本地服务
-                    Exporter<?> exporter = protocol.export(proxyFactory.getInvoker(ref, (Class) interfaceClass, local));
+                      URL url = new URL(name, host, port, (contextPath == null || contextPath.length() == 0 ? "" : contextPath + "/") + path, map);
+                      url = ExtensionLoader.getExtensionLoader(ConfiguratorFactory.class).getExtension(url.getProtocol()).getConfigurator(url).configure(url)
+                      //发布本地服务
+                      ServiceConfig.exportLocal(url) 
+                      
+                      //发布远程服务  
+                      Invoker<?> invoker = proxyFactory.getInvoker(ref, (Class) interfaceClass, url)
+                        ->StubProxyFactoryWrapper.getInvoker(ref, (Class) interfaceClass, url)
+                           ->JavassistProxyFactory.getInvoker()
+                      wrapperInvoker = new DelegateProviderMetaDataInvoker(invoker, this);
+                      ExtensionLoader.getExtensionLoader(Protocol.class).getAdaptiveExtension().export(wrapperInvoker)
+                        ->Protocol$Adaptive.export(wrapperInvoker)
+                          ->QosProtocolWrapper.export(wrapperInvoker)
+                            ->ProtocolListenerWrapper.export(wrapperInvoker)
+                              ->ProtocolFilterWrapper.export(wrapperInvoker)
+                                ->ProtocolFilterWrapper.buildInvokerChain() //构建调用的过滤器链
+                                  -> ExtensionLoader.getExtensionLoader(Filter.class).getActivateExtension(invoker.getUrl(), "service.filter", "provider")
+                                     
+
 
 ```
-                 INFO config.AbstractConfig:  [DUBBO] Export dubbo service com.alibaba.dubbo.config.spring.api.DemoService to local registry, dubbo version: 2.0.0, current host: 172.18.14.161
-                        
-                        Invoker<?> invoker = proxyFactory.getInvoker(ref, (Class) interfaceClass, url);
-                        DelegateProviderMetaDataInvoker wrapperInvoker = new DelegateProviderMetaDataInvoker(invoker, this);
-                        Exporter<?> exporter = protocol.export(wrapperInvoker);//有两个exporter一个是injvm,还有一个是remote
-                 INFO config.AbstractConfig:  [DUBBO] Export dubbo service com.alibaba.dubbo.config.spring.api.DemoService to url dubbo://172.18.14.161:20881/com.alibaba.dubbo.config.spring.api.DemoService?anyhost=true&application=demo-provider&bind.ip=172.18.14.161&bind.port=20881&dubbo=2.0.0&generic=false&interface=com.alibaba.dubbo.config.spring.api.DemoService&methods=sayName,getBox&owner=world&pid=1348&service.filter=mymock,default&side=provider&timestamp=1661396973813, dubbo version: 2.0.0, current host: 172.18.14.161
+
+
+```
+INFO config.AbstractConfig:  [DUBBO] Export dubbo service com.alibaba.dubbo.config.spring.api.DemoService to local registry, dubbo version: 2.0.0, current host: 172.18.14.161
+    
+    Invoker<?> invoker = proxyFactory.getInvoker(ref, (Class) interfaceClass, url);
+    DelegateProviderMetaDataInvoker wrapperInvoker = new DelegateProviderMetaDataInvoker(invoker, this);
+    Exporter<?> exporter = protocol.export(wrapperInvoker);//有两个exporter一个是injvm,还有一个是remote
+INFO config.AbstractConfig:  [DUBBO] Export dubbo service com.alibaba.dubbo.config.spring.api.DemoService to url dubbo://172.18.14.161:20881/com.alibaba.dubbo.config.spring.api.DemoService?anyhost=true&application=demo-provider&bind.ip=172.18.14.161&bind.port=20881&dubbo=2.0.0&generic=false&interface=com.alibaba.dubbo.config.spring.api.DemoService&methods=sayName,getBox&owner=world&pid=1348&service.filter=mymock,default&side=provider&timestamp=1661396973813, dubbo version: 2.0.0, current host: 172.18.14.161
+```
                         
                         
                         

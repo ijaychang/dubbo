@@ -17,5 +17,6 @@
 
     <modules>
         <module>dubbo-spring-integration-learn</module>
+        <module>dubbo-netty-learn</module>
     </modules>
 </project>

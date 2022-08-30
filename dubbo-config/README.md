@@ -1,4 +1,5 @@
 # spring自定义命名xml空间解析
+spring xml配置文件加载过程，自定义schema解析过程
 ```
  ClassPathXmlApplicationContext构造函数
   ->AbstractApplicationContext.refresh()
@@ -64,7 +65,7 @@ ServiceBean.onApplicationEvent()
                       ExtensionLoader.getExtensionLoader(Protocol.class).getAdaptiveExtension().export(wrapperInvoker)
                         ->Protocol$Adaptive.export(wrapperInvoker)
                           ->QosProtocolWrapper.export(wrapperInvoker)
-                              ->ProtocolFilterWrapper.export(wrapperInvoker)//ProtocolFilterWrapper作用就是给Invoker包一堆Filter
+                              ->ProtocolFilterWrapper.export(wrapperInvoker)//ProtocolFilterWrapper作用就是给Invoker包装一堆Filter
                                 ->ProtocolFilterWrapper.buildInvokerChain() //构建Invoker调用过滤器链
                                   ->ExtensionLoader.getExtensionLoader(Filter.class).getActivateExtension(invoker.getUrl(), "service.filter", "provider")
                                 ->ProtocolListenerWrapper.export(wrapperInvoker)

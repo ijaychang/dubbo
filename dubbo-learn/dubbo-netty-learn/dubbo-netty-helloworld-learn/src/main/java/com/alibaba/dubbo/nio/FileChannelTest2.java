@@ -9,6 +9,12 @@ import java.nio.channels.FileChannel;
 import java.util.Arrays;
 
 public class FileChannelTest2 {
+    /**
+     * FileChannel 分散读，聚合写示例
+     *
+     * @param args
+     * @throws IOException
+     */
     public static void main(String[] args) throws IOException {
         FileInputStream fis = new FileInputStream(FileChannelTest2.class.getResource("/1.txt").getFile());
         File file2 = new File(FileChannelTest2.class.getResource("/").getPath() + "2.txt");
@@ -29,23 +35,19 @@ public class FileChannelTest2 {
         long readCount = -1;
         long sumLength = 0;
         while ((readCount = fisChannel.read(buffs)) != -1) {
+            System.out.println("readCount:" + readCount + ",sumLength:" + sumLength);
             sumLength += readCount;
             Arrays.stream(buffs).map(buff -> "position:" + buff.position() + ",limit:" + buff.limit() + ",capacity:" + buff.capacity()).forEach(System.out::println);
             Arrays.stream(buffs).forEach(ByteBuffer::flip);
-            Arrays.stream(buffs).forEach(buff -> {
-                try {
-                    fosChannel.write(buff);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
-
+            fosChannel.write(buffs);
             Arrays.stream(buffs).forEach(ByteBuffer::clear);
         }
 
         System.out.println("sumLength = " + sumLength);
-
+        fis.close();
+        fos.close();
         fisChannel.close();
         fosChannel.close();
     }
+
 }
